@@ -43,7 +43,7 @@ class Evento {
     return new Evento(updatedEvent[0].id, updatedEvent[0].titulo, updatedEvent[0].descripcion, updatedEvent[0].fecha);
   }
 
-  // Eliminar un evento
+  // Eliminar un evento.
   static async eliminar(id) {
     const result = await pool.execute('DELETE FROM eventos WHERE id=?', [id]);
     if (result[0].affectedRows === 0) {
