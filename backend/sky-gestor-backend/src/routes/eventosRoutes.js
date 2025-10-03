@@ -4,7 +4,7 @@ const router = express.Router();
 const eventosController = require('../controllers/eventosController');
 const { authenticateToken } = require('../middlewares/authMiddleware');
 
-// Aplicar el middleware de autenticación a todas las rutas de eventos.
+// Aplicar el middleware de autenticación a todas las rutas de eventos
 router.use(authenticateToken);
 
 // Rutas para Eventos (todas protegidas)
