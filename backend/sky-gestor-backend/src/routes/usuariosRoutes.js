@@ -9,7 +9,7 @@ router.post('/register', usuariosController.crearUsuario);
 router.post('/login', usuariosController.login);
 
 // A partir de aquí, todas las rutas requieren autenticación.
-// Podríamos aplicar el middleware a cada una o usar router.use(authenticateToken)
+// Podríamos aplicar el middleware a cada una o usar router.use(authenticateToken).
 // si TODAS las siguientes lo necesitaran. Por especificidad y claridad para este ejemplo, lo aplicaremos individualmente.
 // Sin embargo, si todas las rutas de GET, PUT, DELETE para usuarios DEBEN ser protegidas,
 // es más limpio usar router.use(authenticateToken) después de las rutas públicas.
