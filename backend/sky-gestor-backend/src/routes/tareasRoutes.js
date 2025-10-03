@@ -1,27 +1,37 @@
 // sky-gestor-backend/src/routes/tareasRoutes.js
+
+/**
+ * Rutas relacionadas con la gestión de tareas.
+ *
+ * - Todas las rutas de este módulo requieren autenticación JWT.
+ * - Se incluye una ruta para obtener datos auxiliares (usuarios y eventos) 
+ *   pensada para poblar selectores en el frontend.
+ * - Algunas rutas específicas (ej: /select-data, /event/:eventoId) 
+ *   se definen ANTES de rutas con parámetros dinámicos (/id) para evitar conflictos de coincidencia.
+ *
+ * Estructura general:
+ *   - Datos auxiliares: /select-data
+ *   - Relación con eventos: /event/:eventoId
+ *   - CRUD estándar de tareas: POST /, GET /, GET /:id, PUT /:id, DELETE /:id
+ */
+
 const express = require('express');
 const router = express.Router();
 const tareasController = require('../controllers/tareasController');
 const { authenticateToken } = require('../middlewares/authMiddleware');
 
-// Aplicar el middleware de autenticación a todas las rutas de tareas
+// Middleware global: todas las rutas requieren autenticación
 router.use(authenticateToken);
 
-// Rutas para Tareas (todas protegidas)
+// Rutas específicas (se colocan primero por prioridad de coincidencia)
+router.get('/select-data', tareasController.obtenerDatosSelectores); // Datos para combos en el frontend
+router.get('/event/:eventoId', tareasController.obtenerTareasPorEvento); // Tareas filtradas por evento
 
-// Obtener datos para los selectores (usuarios y eventos)
-// Es importante que esta ruta más específica vaya ANTES de rutas con parámetros como /:id
-router.get('/select-data', tareasController.obtenerDatosSelectores);
-
-// Obtener tareas asociadas a un evento específico
-// Esta ruta también debe ir antes de /:id para evitar conflictos
-router.get('/event/:eventoId', tareasController.obtenerTareasPorEvento);
-
-// Rutas CRUD estándar para tareas
-router.post('/', tareasController.crearTarea);
-router.get('/', tareasController.obtenerTareas); // Obtener todas las tareas
-router.get('/:id', tareasController.obtenerTareaPorId); // Obtener una tarea específica
-router.put('/:id', tareasController.actualizarTarea);
-router.delete('/:id', tareasController.eliminarTarea);
+// Rutas CRUD estándar
+router.post('/', tareasController.crearTarea);                 // Crear nueva tarea
+router.get('/', tareasController.obtenerTareas);               // Listar todas las tareas
+router.get('/:id', tareasController.obtenerTareaPorId);        // Obtener tarea por ID
+router.put('/:id', tareasController.actualizarTarea);          // Actualizar tarea existente
+router.delete('/:id', tareasController.eliminarTarea);         // Eliminar tarea
 
 module.exports = router;
