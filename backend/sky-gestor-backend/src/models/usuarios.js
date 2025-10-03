@@ -2,7 +2,7 @@
 const pool = require('../config/db');
 
 class Usuario {
-  // Crear un nuevo usuario en la base de datos (sin rol)
+  // Crear un nuevo usuario en la base de datos (sin rol).
   static async crear(nombre, correo, contrasena) {
     const query = 'INSERT INTO usuarios (nombre, correo, contrasena) VALUES ($1, $2, $3) RETURNING id, nombre, correo';
     const values = [nombre, correo, contrasena];
