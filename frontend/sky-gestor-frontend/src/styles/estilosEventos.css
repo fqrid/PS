@@ -1,0 +1,179 @@
+/* estilosEventos.css */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Roboto', sans-serif;
+}
+
+.overlay {
+    background: rgba(255, 255, 255, 0);
+    min-height: 100vh;
+    padding-top: 100px;
+}
+
+.container-main {
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    max-width: 1000px;
+    margin: auto;
+    margin-top: 56px; /* Ajusta este valor según la altura de tu navbar */
+    min-height: 400px; /* Esto asegura que tenga algo de altura en pantallas grandes */
+    height: auto;
+    width: 90%;
+}
+
+/*.navbar-custom {
+    background: rgba(0, 0, 0, 0.3);
+}*/
+
+.navbar-brand {
+    font-family: 'Poppins', sans-serif;
+    font-weight: bold;
+    /*color: #ffffff !important;  Mantén si quieres que siempre sea blanco */
+}
+
+/*.navbar-nav .nav-link {
+    color: #ffffff  !important; Mantén si quieres que siempre sea blanco 
+}*/
+
+.navbar-nav .nav-link.text-danger {
+    color: #ff6666 !important;
+}
+
+
+.table, .modal-content {
+    background-color: rgba(255, 255, 255, 0.9);
+}
+
+.form-control {
+    background-color: rgba(255, 255, 255, 0.75);
+}
+.fondo-personalizado {
+    /* Ruta corregida para Webpack/Create React App */
+    background-image: url('../../public/imagen/IMG_5994.JPEG'); /* <-- ¡PRUEBA ESTA RUTA! */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    width: 100%;
+    position: relative;
+}
+
+
+body.modo-oscuro {
+    background-color: #121212;
+    color: #f1f1f1;
+}
+
+body.modo-oscuro .container-main {
+    background-color: rgba(40, 40, 40, 0.9);
+}
+
+body.modo-oscuro .form-control,
+body.modo-oscuro .form-select,
+body.modo-oscuro .table {
+    background-color: rgba(60, 60, 60, 0.8);
+    color: white;
+}
+
+/* NUEVAS REGLAS CSS PARA RESPONSIVIDAD Y TRUNCAMIENTO DE TEXTO */
+
+/* Estilos para recortar texto en tablas */
+.truncate-text {
+  white-space: nowrap; /* Evita que el texto se envuelva a la siguiente línea */
+  overflow: hidden;    /* Oculta cualquier contenido que desborde */
+  text-overflow: ellipsis; /* Muestra puntos suspensivos (...) para el texto recortado */
+  max-width: 200px; /* Ancho máximo por defecto para la descripción en pantallas grandes */
+}
+
+/* Media queries para responsividad */
+
+/* Para pantallas medianas (tablets, laptops pequeñas) */
+@media (max-width: 992px) {
+  .truncate-text {
+    max-width: 120px; /* Reduce el ancho de la descripción en pantallas medianas */
+  }
+  .table th, .table td {
+    padding: 0.5rem; /* Ajusta el padding para hacer las celdas más compactas */
+    font-size: 0.9rem; /* Reduce el tamaño de fuente */
+  }
+}
+
+/* Para pantallas pequeñas (móviles) */
+@media (max-width: 768px) {
+  .container-main {
+    padding: 15px; /* Reduce el padding del contenedor principal */
+    width: 95%; /* Ocupa más ancho en pantallas pequeñas */
+    margin-top: 20px; /* Ajusta el margen superior si es necesario */
+  }
+
+  .table {
+    font-size: 0.8rem; /* Tamaño de fuente más pequeño para toda la tabla */
+  }
+  
+  .table th, .table td {
+    padding: 0.3rem; /* Reduce aún más el padding */
+    white-space: normal; /* Permitir que el texto se envuelva en columnas que no sean truncate-text */
+  }
+
+  .truncate-text {
+    max-width: 80px; /* Aún más pequeño en móviles */
+    white-space: nowrap; /* Mantiene el nowrap para el truncamiento */
+  }
+
+  /* Oculta las columnas de Latitud y Longitud en móviles */
+  .table .col-hide-mobile {
+    display: none;
+  }
+}
+
+/* Botón principal (ej: Guardar, Agregar) */
+.btn-custom-primary {
+  background-color: #6C757D; /* Gris suave, un color neutro y moderno */
+  border-color: #6C757D;
+  color: white;
+}
+
+.btn-custom-primary:hover {
+  background-color: #5a6268; /* Un tono más oscuro al pasar el ratón */
+  border-color: #545b62;
+}
+
+/* Botón de acción (ej: Ver Detalles, Editar) */
+.btn-custom-action {
+  background-color: #007bff; /* Azul clásico de Bootstrap, pero puedes cambiarlo a un verde agua, púrpura, etc. */
+  border-color: #007bff;
+  color: white;
+}
+
+.btn-custom-action:hover {
+  background-color: #0056b3;
+  border-color: #004085;
+}
+
+/* Botón de éxito (ej: Confirmar, Completar) */
+.btn-custom-success {
+  background-color: #28a745; /* Verde estándar, puedes cambiarlo por uno más suave */
+  border-color: #28a745;
+  color: white;
+}
+
+.btn-custom-success:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+/* Botón de peligro (ej: Eliminar, Cancelar) */
+.btn-custom-danger {
+  background-color: #dc3545; /* Rojo estándar, pero si quieres algo menos "agresivo" */
+  border-color: #dc3545;
+  color: white;
+}
+
+.btn-custom-danger:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
+}
