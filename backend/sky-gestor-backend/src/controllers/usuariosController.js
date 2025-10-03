@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken'); // Importar jwt
 const Usuario = require('../models/usuarios');
 
-const SECRET_KEY = process.env.JWT_SECRET; // Obtén la clave secreta de las variables de entorno
+const SECRET_KEY = process.env.JWT_SECRET; // Obtén la clave secreta de las variables de entorno.
 
 // Función para validar la contraseña (al menos 8 caracteres, un símbolo y un número)
 function validarContrasena(contrasena) {
