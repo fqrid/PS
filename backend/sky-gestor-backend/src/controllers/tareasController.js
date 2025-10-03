@@ -3,7 +3,7 @@ const Tarea = require('../models/tareas');
 const Usuario = require('../models/usuarios'); // Necesario para obtener la lista de usuarios para selectores
 const Evento = require('../models/eventos');   // Necesario para obtener la lista de eventos para selectores
 
-// Crear una tarea
+// Crear una tarea.
 exports.crearTarea = async (req, res) => {
   try {
     const { titulo, descripcion, estado, fecha, usuarioAsignadoId, eventoAsociadoId } = req.body;
