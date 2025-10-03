@@ -6,7 +6,7 @@
  * - Registro y login son rutas públicas (no requieren autenticación).
  * - Listado, actualización y eliminación requieren autenticación con JWT.
  * 
- * Nota: Se podría aplicar `router.use(authenticateToken)` para proteger todas las rutas
+ * Nota: Se podría aplicar `router.use(authenticateToken)` para proteger todas las rutas.
  * posteriores a las públicas. En este caso, se aplica de forma individual para mayor claridad.
  */
 
