@@ -19,6 +19,7 @@ router.post('/login', usuariosController.login);
 // Opción B: Aplicar individualmente (como estaba en tu archivo original o si hubiera alguna ruta GET no protegida)
 router.get('/', authenticateToken, usuariosController.obtenerUsuarios);
 // router.get('/:id', authenticateToken, usuariosController.obtenerUsuarioPorId); // Esta línea la tenías en tu usuariosController pero no en las rutas originales que te completé. La añado por consistencia.
-
+router.put('/:id', authenticateToken, usuariosController.actualizarUsuario);
+router.delete('/:id', authenticateToken, usuariosController.eliminarUsuario);
 
 module.exports = router;
