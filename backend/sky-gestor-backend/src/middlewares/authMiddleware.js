@@ -1,3 +1,4 @@
+//E
 // sky-gestor-backend/src/middlewares/authMiddleware.js
 const jwt = require('jsonwebtoken');
 
