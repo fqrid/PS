@@ -1,3 +1,5 @@
+//modificacion1
+//modificacio2
 // sky-gestor-frontend/src/views/Registro.jsx
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
