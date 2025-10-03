@@ -2,7 +2,7 @@
 const pool = require('../config/db');
 
 class Tarea {
-  // Constructor para facilitar la creación de objetos Tarea con los nombres asociados
+  // Constructor para facilitar la creación de objetos Tarea con los nombres asociados.
   constructor(id, titulo, descripcion, estado, fecha, usuarioAsignadoId, eventoAsociadoId, usuarioAsignadoNombre = null, eventoAsociadoTitulo = null) {
         this.id = id;
         this.titulo = titulo;
