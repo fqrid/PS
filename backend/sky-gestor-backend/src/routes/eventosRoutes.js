@@ -12,6 +12,6 @@ router.post('/', eventosController.crearEvento);
 router.get('/', eventosController.obtenerEventos);
 router.get('/:id', eventosController.obtenerEventoPorId);
 router.put('/:id', eventosController.actualizarEvento);
-router.delete('/:id', eventosController.eliminarEvento);
+
 
 module.exports = router;
