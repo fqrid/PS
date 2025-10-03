@@ -4,7 +4,7 @@ const router = express.Router();
 const tareasController = require('../controllers/tareasController');
 const { authenticateToken } = require('../middlewares/authMiddleware');
 
-// Aplicar el middleware de autenticación a todas las rutas de tareas
+// Aplicar el middleware de autenticación a todas las rutas de tareas.
 router.use(authenticateToken);
 
 // Rutas para Tareas (todas protegidas)
