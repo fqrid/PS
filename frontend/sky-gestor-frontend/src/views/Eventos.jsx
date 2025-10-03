@@ -1,3 +1,4 @@
+//E
 // sky-gestor-frontend/src/views/Eventos.jsx
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
