@@ -11,7 +11,7 @@ class Usuario {
     return newUser[0];
   }
 
-  // Obtener todos los usuarios (útil para selectores, sin contraseñas)
+  // Obtener todos los usuarios (útil para selectores, sin contraseñas).
   static async obtenerTodos() {
     const [result] = await pool.execute('SELECT id, nombre, correo FROM usuarios ORDER BY nombre ASC');
     return result;
