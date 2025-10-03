@@ -1,3 +1,4 @@
+//E
 // sky-gestor-frontend/src/views/Tareas.jsx
 import React, { useEffect, useState, useCallback } from 'react'; // <--- Añade useCallback aquí
 import '../styles/estilosEventos.css'; // O tu archivo CSS para tareas
