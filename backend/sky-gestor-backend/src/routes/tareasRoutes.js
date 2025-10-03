@@ -6,7 +6,7 @@
  * - Todas las rutas de este módulo requieren autenticación JWT.
  * - Se incluye una ruta para obtener datos auxiliares (usuarios y eventos) 
  *   pensada para poblar selectores en el frontend.
- * - Algunas rutas específicas (ej: /select-data, /event/:eventoId) 
+ * - Algunas rutas específicas (ej: /select-data, /event/:eventoId). 
  *   se definen ANTES de rutas con parámetros dinámicos (/id) para evitar conflictos de coincidencia.
  *
  * Estructura general:
