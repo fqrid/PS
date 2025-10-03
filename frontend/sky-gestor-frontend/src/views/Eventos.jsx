@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import '../styles/estilosEventos.css'; // Asegúrate de que este CSS contiene los estilos base y los del modo oscuro si los has centralizado aquí
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext.js'; // <-- Importa useTheme
-import MapaEvento from '../components/MapaEvento';
 
 function Eventos() {
   const { user } = useAuth();
@@ -13,8 +12,6 @@ function Eventos() {
   const [titulo, setTitulo] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [fecha, setFecha] = useState('');
-  const [lat, setLat] = useState(null);
-  const [lng, setLng] = useState(null);
   const [modoEditar, setModoEditar] = useState(false);
   const [modoVerDetalles, setModoVerDetalles] = useState(false);
   const [eventoActual, setEventoActual] = useState(null);
@@ -58,19 +55,12 @@ function Eventos() {
     }
   }, [user, fetchEventos]);
 
-  // Callback para manejar la selección de ubicación desde el mapa
-  // Ahora recibe un objeto { lat, lng }
-  const handleLocationSelect = useCallback(({ lat, lng }) => {
-    setLat(lat);
-    setLng(lng);
-  }, []);
 
   const validarFormulario = () => {
     const erroresTemp = {};
     if (!titulo.trim()) erroresTemp.titulo = 'El título es obligatorio';
     if (!descripcion.trim()) erroresTemp.descripcion = 'La descripción es obligatoria';
     if (!fecha) erroresTemp.fecha = 'La fecha es obligatoria';
-    if (lat === null || lng === null) erroresTemp.ubicacion = 'La ubicación es obligatoria. Selecciona un punto en el mapa.';
     setErrores(erroresTemp);
     return Object.keys(erroresTemp).length === 0;
   };
@@ -87,7 +77,7 @@ function Eventos() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ titulo, descripcion, fecha, lat, lng })
+        body: JSON.stringify({ titulo, descripcion, fecha })
       });
       if (res.ok) {
         alert('Evento agregado con éxito');
@@ -95,8 +85,6 @@ function Eventos() {
         setTitulo('');
         setDescripcion('');
         setFecha('');
-        setLat(null);
-        setLng(null);
         setErrores({});
       } else {
         const errorData = await res.json();
@@ -138,8 +126,6 @@ function Eventos() {
     setDescripcion(evento.descripcion || '');
     // Asegura que la fecha esté en formato YYYY-MM-DD o cadena vacía
     setFecha(evento.fecha ? evento.fecha.split('T')[0] : '');
-    setLat(evento.ubicacion?.lat || null);
-    setLng(evento.ubicacion?.lng || null);
     setModoEditar(true);
     setModoVerDetalles(false);
     setErrores({});
@@ -150,8 +136,6 @@ function Eventos() {
     setTitulo(evento.titulo || '');
     setDescripcion(evento.descripcion || '');
     setFecha(evento.fecha ? evento.fecha.split('T')[0] : '');
-    setLat(evento.ubicacion?.lat || null);
-    setLng(evento.ubicacion?.lng || null);
     setModoVerDetalles(true);
     setModoEditar(false);
     setErrores({});
@@ -164,8 +148,6 @@ function Eventos() {
     setTitulo('');
     setDescripcion('');
     setFecha('');
-    setLat(null);
-    setLng(null);
     setErrores({});
   };
 
@@ -185,9 +167,7 @@ function Eventos() {
         body: JSON.stringify({
           titulo,
           descripcion,
-          fecha,
-          lat,
-          lng
+          fecha
         })
       });
       if (res.ok) {
@@ -251,24 +231,6 @@ function Eventos() {
               />
               {errores.fecha && <div className="invalid-feedback">{errores.fecha}</div>}
             </div>
-            {/* Usamos tu componente MapaEvento aquí */}
-            <div className="col-12 mb-3">
-              <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Selecciona la Ubicación en el Mapa</label>
-              <div style={{ height: '300px', width: '100%', border: errores.ubicacion ? '1px solid var(--bs-danger)' : 'none', borderRadius: '8px', overflow: 'hidden' }}>
-                <MapaEvento
-                  lat={lat}
-                  lng={lng}
-                  setCoordinates={handleLocationSelect}
-                  isInteractive={true} // Siempre interactivo para agregar
-                />
-              </div>
-              {errores.ubicacion && <div className="invalid-feedback d-block">{errores.ubicacion}</div>}
-              {(lat !== null && lng !== null) && (
-                <small className={`form-text ${darkMode ? 'text-white-50' : 'text-muted'}`}>
-                  Ubicación seleccionada: Lat {lat?.toFixed(6)}, Lng {lng?.toFixed(6)}
-                </small>
-              )}
-            </div>
 
             <div className="col-12">
               <button type="submit" className="btn btn-custom-success w-100 w-md-auto">
@@ -286,7 +248,6 @@ function Eventos() {
                   <th>Título</th>
                   <th className="col-hide-mobile">Descripción</th>
                   <th>Fecha</th>
-                  <th>Ubicación</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -296,7 +257,6 @@ function Eventos() {
                     <td>{evento.titulo}</td>
                     <td className="truncate-text col-hide-mobile">{evento.descripcion}</td>
                     <td>{evento.fecha ? evento.fecha.split('T')[0] : ''}</td>
-                    <td>{evento.ubicacion ? `Lat: ${evento.ubicacion.lat?.toFixed(4)}, Lng: ${evento.ubicacion.lng?.toFixed(4)}` : 'N/A'}</td>
                     <td>
                       <div className="d-flex flex-wrap">
                         <button
@@ -373,24 +333,6 @@ function Eventos() {
                         {errores.fecha && modoEditar && <div className="invalid-feedback">{errores.fecha}</div>}
                       </div>
 
-                      {/* Usamos tu componente MapaEvento en el modal */}
-                      <div className="col-12 mt-3 mb-3">
-                        <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Ubicación en el Mapa</label>
-                        <div style={{ height: '300px', width: '100%', border: errores.ubicacion && modoEditar ? '1px solid var(--bs-danger)' : 'none', borderRadius: '8px', overflow: 'hidden' }}>
-                          <MapaEvento
-                            lat={lat}
-                            lng={lng}
-                            setCoordinates={handleLocationSelect}
-                            isInteractive={modoEditar} // Interactivo solo en modo edición
-                          />
-                        </div>
-                        {errores.ubicacion && modoEditar && <div className="invalid-feedback d-block">{errores.ubicacion}</div>}
-                         {(lat !== null && lng !== null) && (modoEditar || modoVerDetalles) && (
-                            <small className={`form-text ${darkMode ? 'text-white-50' : 'text-muted'}`}>
-                              Lat {lat?.toFixed(6)}, Lng {lng?.toFixed(6)}
-                            </small>
-                          )}
-                      </div>
                     </div>
                     <div className="modal-footer">
                       <button type="button" className="btn btn-custom-danger" onClick={cerrarModal}>
