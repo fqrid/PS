@@ -4,7 +4,7 @@ const Evento = require('../models/eventos');
 exports.crearEvento = async (req, res) => {
   try {
     const { titulo, descripcion, fecha } = req.body; 
-    // Validación de campos obligatorios
+    // Validación de campos obligatorios.
     if (!titulo || !descripcion || !fecha) { 
         return res.status(400).json({ error: 'Título, descripción y fecha son campos obligatorios.' }); 
     }
