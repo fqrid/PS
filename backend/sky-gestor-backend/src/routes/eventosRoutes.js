@@ -12,7 +12,7 @@
  *   - GET    /     → Listar todos los eventos
  *   - GET    /:id  → Obtener evento por ID
  *   - PUT    /:id  → Actualizar evento existente
- *   - DELETE /:id  → Eliminar evento
+ *   - DELETE /:id  → Eliminar evento.
  */
 
 const express = require('express');
