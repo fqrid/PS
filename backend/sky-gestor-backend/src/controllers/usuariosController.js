@@ -76,6 +76,8 @@ exports.login = async (req, res) => {
       { expiresIn: '1h' } // El token expira en 1 hora
     );
 
+    console.log('Token generado: ', token) //Mostramos el token generado al logear
+    
     res.json({
       message: 'Login exitoso',
       token, // Envía el token al cliente
