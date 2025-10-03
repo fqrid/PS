@@ -24,6 +24,6 @@ router.get('/:id', tareasController.obtenerTareaPorId); // Obtener una tarea esp
 router.put('/:id', tareasController.actualizarTarea);
 router.delete('/:id', tareasController.eliminarTarea);
 // Ruta para obtener tareas asociadas a un evento
-router.get('/event/:eventoId', tareasController.obtenerTareasPorEventoId); // Nueva ruta aquí
+
 
 module.exports = router;
