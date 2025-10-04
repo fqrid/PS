@@ -5,6 +5,13 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js'; // Asegúrate de la extensión .js
 import { useTheme } from '../context/ThemeContext.js'; // Asegúrate de la extensión .js
 
+function Login() {
+  const [correo, setCorreo] = useState('');
+  const [contrasena, setContrasena] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const { darkMode } = useTheme();
 
 
   const handleLogin = async (e) => {
