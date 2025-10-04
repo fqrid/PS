@@ -58,19 +58,7 @@ function Usuarios() {
   // const cancelarEdicion = () => { ... };
   // const guardarCambios = async (e) => { ... };
 
-  if (loading) return <div className="text-center mt-5">Cargando usuarios...</div>;
-
-  if (fetchError) return <div className="alert alert-danger text-center mt-5">{fetchError}</div>;
-
-  return (
-    <div className="fondo-personalizado">
-      {/* El container-main ya no usa dark-mode-container, solo estilosEvento.css debe manejarlo */}
-      {/* Si el estilo gris y transparente está definido en .container-main en estilosEventos.css,
-          entonces no necesitas ninguna clase condicional aquí para el fondo del contenedor principal. */}
-      <div className="container-main">
-        <div className="container mt-5 pt-5">
-          {/* El título h2 sigue usando darkMode para el color del texto */}
-          <h2 className={`mb-4 text-center ${darkMode ? 'text-white' : 'text-dark'}`}>Gestión de Usuarios</h2>
+ 
 
           {/* El modal de edición de usuario ha sido eliminado completamente */}
           {/* {modoEditar && ( ... )} */}
