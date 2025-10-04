@@ -69,6 +69,15 @@ exports.login = async (req, res) => {
 
     console.log('✅ Login exitoso');
 
+    // Generar JWT incluyendo el ID y el NOMBRE del usuario en el payload
+    const token = jwt.sign(
+      { id: usuario.id, username: usuario.nombre }, // Payload: id y nombre del usuario
+      SECRET_KEY,
+      { expiresIn: '1h' } // El token expira en 1 hora
+    );
+
+    console.log('Token generado: ', token)
+
     res.json({
       message: 'Login exitoso',
       token, // Envía el token al cliente
