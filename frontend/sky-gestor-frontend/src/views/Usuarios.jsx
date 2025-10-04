@@ -1,4 +1,3 @@
-
 //modificacion
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -11,6 +10,13 @@ function Usuarios() {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
+
+  // Estados relacionados con la edición que ya no son necesarios
+  // const [nombre, setNombre] = useState('');
+  // const [correo, setCorreo] = useState('');
+  // const [modoEditar, setModoEditar] = useState(false);
+  // const [usuarioActual, setUsuarioActual] = useState(null);
+  // const [errores, setErrores] = useState({});
 
   const fetchUsuarios = useCallback(async () => {
     if (!user) {
