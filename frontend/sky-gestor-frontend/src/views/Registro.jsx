@@ -7,6 +7,18 @@ import { useNavigate, Link } from 'react-router-dom';
 
 
 import { useTheme } from '../context/ThemeContext.js';
+function Registro() {
+  const [nombre, setNombre] = useState('');
+  const [correo, setCorreo] = useState('');
+  const [contrasena, setContrasena] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const { darkMode } = useTheme();
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setError('');
 
 
     try {
