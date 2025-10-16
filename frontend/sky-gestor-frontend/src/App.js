@@ -14,26 +14,29 @@ import Usuarios from './views/Usuarios.jsx';
 // Componentes comunes
 import Navbar from './components/Navbar.jsx';             
 import ProtectedRoute from './components/ProtectedRoute.jsx'; 
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 
 function App() {
   return (
-    <Router>
-      <Navbar />
-      <Routes>
-        {/* Rutas públicas */}
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Registro />} />
+    <ErrorBoundary>
+      <Router>
+        <Navbar />
+        <Routes>
+          {/* Rutas públicas */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Registro />} />
 
-        {/* Rutas protegidas */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/eventos" element={<Eventos />} />
-          <Route path="/eventos/:id" element={<EventoDetalles />} />
-          <Route path="/tareas" element={<Tareas />} />
-          <Route path="/usuarios" element={<Usuarios />} />
-        </Route>
-      </Routes>
-    </Router>
+          {/* Rutas protegidas */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/eventos" element={<Eventos />} />
+            <Route path="/eventos/:id" element={<EventoDetalles />} />
+            <Route path="/tareas" element={<Tareas />} />
+            <Route path="/usuarios" element={<Usuarios />} />
+          </Route>
+        </Routes>
+      </Router>
+    </ErrorBoundary>
   );
 }
 
