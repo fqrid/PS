@@ -23,6 +23,9 @@ const { authenticateToken } = require('../middlewares/authMiddleware');
 // Middleware global: todas las rutas requieren autenticación
 router.use(authenticateToken);
 
+// Rutas específicas deben ir antes de rutas con parámetros dinámicos
+router.get('/proximas-24h', eventosController.obtenerEventosProximas24h);
+
 // Rutas CRUD estándar para eventos
 router.post('/', eventosController.crearEvento);            // Crear evento
 router.get('/', eventosController.obtenerEventos);          // Listar todos los eventos

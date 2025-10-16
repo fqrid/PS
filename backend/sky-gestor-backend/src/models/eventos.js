@@ -51,6 +51,15 @@ class Evento {
     }
     return { message: 'Evento eliminado', deleted: true, id };
   }
+
+  // Obtener eventos en las próximas 24 horas (inclusivo)
+  static async obtenerProximas24Horas() {
+    // Usamos NOW() y DATE_ADD(NOW(), INTERVAL 24 HOUR) en MySQL.
+    const [result] = await pool.execute(
+      'SELECT id, titulo, descripcion, fecha FROM eventos WHERE fecha BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 24 HOUR) ORDER BY fecha ASC'
+    );
+    return result.map(row => new Evento(row.id, row.titulo, row.descripcion, row.fecha));
+  }
 }
 
 module.exports = Evento;

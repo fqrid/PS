@@ -87,3 +87,14 @@ exports.eliminarEvento = async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor al eliminar el evento.' }); 
   }
 };
+
+// Obtener eventos en las próximas 24 horas
+exports.obtenerEventosProximas24h = async (req, res) => {
+  try {
+    const eventos = await Evento.obtenerProximas24Horas();
+    res.json(eventos);
+  } catch (error) {
+    console.error('Error al obtener eventos de las próximas 24 horas:', error);
+    res.status(500).json({ error: 'Error interno del servidor al obtener eventos próximos.' });
+  }
+};
