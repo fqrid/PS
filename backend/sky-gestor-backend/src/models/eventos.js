@@ -1,46 +1,48 @@
 const pool = require('../config/db');
 
 class Evento {
-  constructor(id, titulo, descripcion, fecha) {
+  constructor(id, titulo, descripcion, fecha, ubicacion, encargado) {
     this.id = id;
     this.titulo = titulo;
     this.descripcion = descripcion;
     this.fecha = fecha;
+    this.ubicacion = ubicacion;
+    this.encargado = encargado;
   }
 
   // Crear un nuevo evento
-  static async crear(titulo, descripcion, fecha) {
-    const query = 'INSERT INTO eventos (titulo, descripcion, fecha) VALUES (?, ?, ?)';
-    const values = [titulo, descripcion, fecha];
+  static async crear(titulo, descripcion, fecha, ubicacion, encargado) {
+    const query = 'INSERT INTO eventos (titulo, descripcion, fecha, ubicacion, encargado) VALUES (?, ?, ?, ?, ?)';
+    const values = [titulo, descripcion, fecha, ubicacion, encargado];
     const result = await pool.execute(query, values);
-    const [newEvent] = await pool.execute('SELECT id, titulo, descripcion, fecha FROM eventos WHERE id = ?', [result[0].insertId]);
-    return new Evento(newEvent[0].id, newEvent[0].titulo, newEvent[0].descripcion, newEvent[0].fecha);
+    const [newEvent] = await pool.execute('SELECT id, titulo, descripcion, fecha, ubicacion, encargado FROM eventos WHERE id = ?', [result[0].insertId]);
+    return new Evento(newEvent[0].id, newEvent[0].titulo, newEvent[0].descripcion, newEvent[0].fecha, newEvent[0].ubicacion, newEvent[0].encargado);
   }
 
   // Obtener todos los eventos
   static async obtenerTodos() {
-    const [result] = await pool.execute('SELECT id, titulo, descripcion, fecha FROM eventos ORDER BY fecha DESC');
-    return result.map(row => new Evento(row.id, row.titulo, row.descripcion, row.fecha));
+    const [result] = await pool.execute('SELECT id, titulo, descripcion, fecha, ubicacion, encargado FROM eventos ORDER BY fecha DESC');
+    return result.map(row => new Evento(row.id, row.titulo, row.descripcion, row.fecha, row.ubicacion, row.encargado));
   }
 
   // Obtener un evento por ID
   static async obtenerPorId(id) {
-    const [result] = await pool.execute('SELECT id, titulo, descripcion, fecha FROM eventos WHERE id = ?', [id]);
+    const [result] = await pool.execute('SELECT id, titulo, descripcion, fecha, ubicacion, encargado FROM eventos WHERE id = ?', [id]);
     if (result.length === 0) return null;
     const row = result[0];
-    return new Evento(row.id, row.titulo, row.descripcion, row.fecha);
+    return new Evento(row.id, row.titulo, row.descripcion, row.fecha, row.ubicacion, row.encargado);
   }
 
   // Actualizar un evento
-  static async actualizar(id, titulo, descripcion, fecha) {
-    const query = 'UPDATE eventos SET titulo=?, descripcion=?, fecha=? WHERE id=?';
-    const values = [titulo, descripcion, fecha, id];
+  static async actualizar(id, titulo, descripcion, fecha, ubicacion, encargado) {
+    const query = 'UPDATE eventos SET titulo=?, descripcion=?, fecha=?, ubicacion=?, encargado=? WHERE id=?';
+    const values = [titulo, descripcion, fecha, ubicacion, encargado, id];
     const result = await pool.execute(query, values);
     if (result[0].affectedRows === 0) {
       return null; // No se encontró el evento para actualizar
     }
-    const [updatedEvent] = await pool.execute('SELECT id, titulo, descripcion, fecha FROM eventos WHERE id = ?', [id]);
-    return new Evento(updatedEvent[0].id, updatedEvent[0].titulo, updatedEvent[0].descripcion, updatedEvent[0].fecha);
+    const [updatedEvent] = await pool.execute('SELECT id, titulo, descripcion, fecha, ubicacion, encargado FROM eventos WHERE id = ?', [id]);
+    return new Evento(updatedEvent[0].id, updatedEvent[0].titulo, updatedEvent[0].descripcion, updatedEvent[0].fecha, updatedEvent[0].ubicacion, updatedEvent[0].encargado);
   }
 
   // Eliminar un evento.
@@ -54,11 +56,10 @@ class Evento {
 
   // Obtener eventos en las próximas 24 horas (inclusivo)
   static async obtenerProximas24Horas() {
-    // Usamos NOW() y DATE_ADD(NOW(), INTERVAL 24 HOUR) en MySQL.
     const [result] = await pool.execute(
-      'SELECT id, titulo, descripcion, fecha FROM eventos WHERE fecha BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 24 HOUR) ORDER BY fecha ASC'
+      'SELECT id, titulo, descripcion, fecha, ubicacion, encargado FROM eventos WHERE fecha BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 24 HOUR) ORDER BY fecha ASC'
     );
-    return result.map(row => new Evento(row.id, row.titulo, row.descripcion, row.fecha));
+    return result.map(row => new Evento(row.id, row.titulo, row.descripcion, row.fecha, row.ubicacion, row.encargado));
   }
 }
 

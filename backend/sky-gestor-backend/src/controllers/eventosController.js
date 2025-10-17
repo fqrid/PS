@@ -3,14 +3,14 @@ const Evento = require('../models/eventos');
 // Crear evento
 exports.crearEvento = async (req, res) => {
   try {
-    const { titulo, descripcion, fecha } = req.body; 
+    const { titulo, descripcion, fecha, ubicacion, encargado } = req.body; 
     // Validación de campos obligatorios.
-    if (!titulo || !descripcion || !fecha) { 
-        return res.status(400).json({ error: 'Título, descripción y fecha son campos obligatorios.' }); 
+    if (!titulo || !descripcion || !fecha || !ubicacion || !encargado) { 
+        return res.status(400).json({ error: 'Título, descripción, fecha, ubicación y encargado son campos obligatorios.' }); 
     }
 
     // Llama al método crear del modelo Evento
-    const nuevoEvento = await Evento.crear(titulo, descripcion, fecha); 
+    const nuevoEvento = await Evento.crear(titulo, descripcion, fecha, ubicacion, encargado); 
     res.status(201).json(nuevoEvento); 
   } catch (error) {
     console.error('Error al crear evento:', error); 
@@ -48,14 +48,14 @@ exports.obtenerEventoPorId = async (req, res) => {
 exports.actualizarEvento = async (req, res) => {
   try {
     const { id } = req.params; 
-    const { titulo, descripcion, fecha } = req.body; 
+    const { titulo, descripcion, fecha, ubicacion, encargado } = req.body; 
 
     // Validación de campos obligatorios
-    if (!titulo || !descripcion || !fecha) { 
-        return res.status(400).json({ error: 'Título, descripción y fecha son campos obligatorios.' }); 
+    if (!titulo || !descripcion || !fecha || !ubicacion || !encargado) { 
+        return res.status(400).json({ error: 'Título, descripción, fecha, ubicación y encargado son campos obligatorios.' }); 
     }
 
-    const eventoActualizado = await Evento.actualizar(id, titulo, descripcion, fecha); 
+    const eventoActualizado = await Evento.actualizar(id, titulo, descripcion, fecha, ubicacion, encargado); 
     if (!eventoActualizado) { // Si el modelo devuelve null porque no encontró el ID
         return res.status(404).json({ error: 'Evento no encontrado para actualizar.' });
     }
@@ -70,12 +70,6 @@ exports.actualizarEvento = async (req, res) => {
 exports.eliminarEvento = async (req, res) => {
   try {
     const { id } = req.params; 
-
-    // Opcional: verificar si el evento existe antes de intentar eliminarlo.
-    // const eventoExistente = await Evento.obtenerPorId(id); // [cite: 292]
-    // if (!eventoExistente) { 
-    //     return res.status(404).json({ error: 'Evento no encontrado para eliminar.' }); /
-    // }
 
     const resultado = await Evento.eliminar(id); 
     if (!resultado.deleted) { // Usando la propiedad 'deleted' que añadimos al modelo
