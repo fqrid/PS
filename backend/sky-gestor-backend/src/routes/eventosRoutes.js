@@ -6,6 +6,7 @@
  * - Todas las rutas de este módulo requieren autenticación JWT.
  * - Se exponen rutas CRUD estándar para la creación, consulta, 
  *   actualización y eliminación de eventos.
+ * - Incluye validaciones de campos obligatorios y sanitización de datos.
  *
  * Estructura general:
  *   - POST   /     → Crear nuevo evento
@@ -19,21 +20,38 @@ const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middlewares/authMiddleware');
 const eventosController = require('../controllers/eventosController');
+const { 
+  validateRequiredFields, 
+  validateId, 
+  sanitizeData 
+} = require('../middlewares/validationMiddleware');
 
+// Middleware global: todas las rutas requieren autenticación
 router.use(authenticateToken);
 
+// Middleware global: sanitizar datos
+router.use(sanitizeData);
+
+// Rutas específicas (se colocan primero por prioridad de coincidencia)
 router.get('/proximas-24h', eventosController.obtenerEventosProximas24h);
 
 router
   .route('/')
   .get(eventosController.obtenerEventos)
-  .post(eventosController.crearEvento);
+  .post(
+    validateRequiredFields(['titulo', 'descripcion', 'fecha', 'ubicacion', 'encargado']),
+    eventosController.crearEvento
+  );
 
 router
   .route('/:id')
-  .get(eventosController.obtenerEventoPorId)
-  .put(eventosController.actualizarEvento)
-  .delete(eventosController.eliminarEvento);
+  .get(validateId, eventosController.obtenerEventoPorId)
+  .put(
+    validateId,
+    validateRequiredFields(['titulo', 'descripcion', 'fecha', 'ubicacion', 'encargado']),
+    eventosController.actualizarEvento
+  )
+  .delete(validateId, eventosController.eliminarEvento);
 
 module.exports = router;
 
