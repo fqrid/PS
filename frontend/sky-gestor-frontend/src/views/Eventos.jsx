@@ -580,28 +580,8 @@ function Eventos() {
                 </div>
               </div>
 
-              {/* Indicador de búsqueda activa */}
-              {hayFiltrosActivos() && (
-                <div className="mt-2">
-                  <small className={`text-muted ${darkMode ? 'text-light' : ''}`}>
-                    <i className="bi bi-funnel me-1"></i>
-                    {filtroSeleccionado === 'fecha' && fechaFiltro && `Filtrando por fecha: ${fechaFiltro}`}
-                    {filtroSeleccionado !== 'fecha' && terminoBusqueda && `Buscando "${terminoBusqueda}" en: `}
-                    {filtroSeleccionado !== 'fecha' && terminoBusqueda && (
-                      <span className="badge bg-primary ms-1">
-                        {filtroSeleccionado === 'todo' && 'Todos los campos'}
-                        {filtroSeleccionado === 'titulo' && 'Título'}
-                        {filtroSeleccionado === 'descripcion' && 'Descripción'}
-                        {filtroSeleccionado === 'ubicacion' && 'Ubicación'}
-                        {filtroSeleccionado === 'encargado' && 'Encargado'}
-                      </span>
-                    )}
-                    <span className="badge bg-info ms-2">
-                      {eventosFiltrados.length} de {eventos.length} eventos
-                    </span>
-                  </small>
-                </div>
-              )}
+              
+              
             </div>
           </div>
 
