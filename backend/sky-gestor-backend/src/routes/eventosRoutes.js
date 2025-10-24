@@ -17,20 +17,24 @@
 
 const express = require('express');
 const router = express.Router();
-const eventosController = require('../controllers/eventosController');
 const { authenticateToken } = require('../middlewares/authMiddleware');
+const eventosController = require('../controllers/eventosController');
 
-// Middleware global: todas las rutas requieren autenticación
 router.use(authenticateToken);
 
-// Rutas específicas deben ir antes de rutas con parámetros dinámicos
 router.get('/proximas-24h', eventosController.obtenerEventosProximas24h);
 
-// Rutas CRUD estándar para eventos
-router.post('/', eventosController.crearEvento);            // Crear evento
-router.get('/', eventosController.obtenerEventos);          // Listar todos los eventos
-router.get('/:id', eventosController.obtenerEventoPorId);   // Obtener evento por ID
-router.put('/:id', eventosController.actualizarEvento);     // Actualizar evento
-router.delete('/:id', eventosController.eliminarEvento);    // Eliminar evento
+router
+  .route('/')
+  .get(eventosController.obtenerEventos)
+  .post(eventosController.crearEvento);
+
+router
+  .route('/:id')
+  .get(eventosController.obtenerEventoPorId)
+  .put(eventosController.actualizarEvento)
+  .delete(eventosController.eliminarEvento);
 
 module.exports = router;
+
+// Revisado y editado el 24-10-2025
