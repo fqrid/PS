@@ -8,6 +8,7 @@ function Eventos() {
   const { user } = useAuth();
   const { darkMode } = useTheme();
   const [eventos, setEventos] = useState([]);
+  const [eventosFiltrados, setEventosFiltrados] = useState([]);
   const [titulo, setTitulo] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [ubicacion, setUbicacion] = useState('');
@@ -20,6 +21,11 @@ function Eventos() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+
+  // Estados para el buscador y filtros
+  const [terminoBusqueda, setTerminoBusqueda] = useState('');
+  const [filtroSeleccionado, setFiltroSeleccionado] = useState('todo'); // Predeterminado: todo
+  const [fechaFiltro, setFechaFiltro] = useState(''); // Para el calendario de fecha
 
   // Mostrar notificación
   const showNotification = (message, type = 'success') => {
@@ -44,6 +50,7 @@ function Eventos() {
       if (res.ok) {
         const data = await res.json();
         setEventos(data);
+        setEventosFiltrados(data);
         setFetchError(null);
       } else {
         const errorData = await res.json();
@@ -63,6 +70,112 @@ function Eventos() {
       fetchEventos();
     }
   }, [user, fetchEventos]);
+
+  // Aplicar búsqueda y filtros
+  const aplicarBusquedaYFiltros = useCallback(() => {
+    if (!terminoBusqueda.trim() && !fechaFiltro) {
+      setEventosFiltrados(eventos);
+      return;
+    }
+
+    let eventosFiltrados = [...eventos];
+
+    // Si hay filtro de fecha, aplicarlo primero
+    if (fechaFiltro && filtroSeleccionado === 'fecha') {
+      eventosFiltrados = eventos.filter(evento =>
+        evento.fecha && evento.fecha.split('T')[0] === fechaFiltro
+      );
+    }
+
+    // Si hay término de búsqueda, aplicarlo
+    if (terminoBusqueda.trim()) {
+      const termino = terminoBusqueda.toLowerCase().trim();
+      
+      switch (filtroSeleccionado) {
+        case 'todo':
+          eventosFiltrados = eventosFiltrados.filter(evento =>
+            (evento.titulo && evento.titulo.toLowerCase().includes(termino)) ||
+            (evento.descripcion && evento.descripcion.toLowerCase().includes(termino)) ||
+            (evento.ubicacion && evento.ubicacion.toLowerCase().includes(termino)) ||
+            (evento.encargado && evento.encargado.toLowerCase().includes(termino)) ||
+            (evento.fecha && evento.fecha.toLowerCase().includes(termino))
+          );
+          break;
+        
+        case 'titulo':
+          eventosFiltrados = eventosFiltrados.filter(evento =>
+            evento.titulo && evento.titulo.toLowerCase().includes(termino)
+          );
+          break;
+        
+        case 'descripcion':
+          eventosFiltrados = eventosFiltrados.filter(evento =>
+            evento.descripcion && evento.descripcion.toLowerCase().includes(termino)
+          );
+          break;
+        
+        case 'ubicacion':
+          eventosFiltrados = eventosFiltrados.filter(evento =>
+            evento.ubicacion && evento.ubicacion.toLowerCase().includes(termino)
+          );
+          break;
+        
+        case 'encargado':
+          eventosFiltrados = eventosFiltrados.filter(evento =>
+            evento.encargado && evento.encargado.toLowerCase().includes(termino)
+          );
+          break;
+        
+        default:
+          break;
+      }
+    }
+
+    setEventosFiltrados(eventosFiltrados);
+  }, [eventos, terminoBusqueda, filtroSeleccionado, fechaFiltro]);
+
+  // Efecto para aplicar búsqueda cuando cambian los términos
+  useEffect(() => {
+    aplicarBusquedaYFiltros();
+  }, [aplicarBusquedaYFiltros]);
+
+  // Limpiar todos los filtros
+  const limpiarFiltros = () => {
+    setTerminoBusqueda('');
+    setFechaFiltro('');
+    setEventosFiltrados(eventos);
+  };
+
+  // Manejar cambio de filtro
+  const manejarCambioFiltro = (filtro) => {
+    setFiltroSeleccionado(filtro);
+    setFechaFiltro(''); // Limpiar fecha cuando se cambia el filtro
+  };
+
+  // Obtener placeholder según filtro seleccionado
+  const getPlaceholder = () => {
+    switch (filtroSeleccionado) {
+      case 'todo':
+        return 'Buscar en todos los campos...';
+      case 'titulo':
+        return 'Buscar por título...';
+      case 'descripcion':
+        return 'Buscar en descripción...';
+      case 'ubicacion':
+        return 'Buscar por ubicación...';
+      case 'encargado':
+        return 'Buscar por encargado...';
+      case 'fecha':
+        return 'Seleccione una fecha...';
+      default:
+        return 'Buscar...';
+    }
+  };
+
+  // Verificar si hay filtros activos
+  const hayFiltrosActivos = () => {
+    return terminoBusqueda || fechaFiltro;
+  };
 
   const validarFormulario = () => {
     const erroresTemp = {};
@@ -109,7 +222,6 @@ function Eventos() {
   };
 
   const eliminarEvento = async (id) => {
-    // SOLO CAMBIO VISUAL - misma lógica
     const evento = eventos.find(e => e.id === id);
     const confirmMessage = `¿Estás seguro de que quieres eliminar el evento "${evento?.titulo}"?\n\nEsta acción no se puede deshacer.`;
     
@@ -208,7 +320,7 @@ function Eventos() {
 
   if (loading) {
     return (
-      <div className="fondo-personalizado">
+      <div className="fondo-personalizado" style={{ overflow: 'hidden' }}>
         <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Cargando eventos...</span>
@@ -221,7 +333,7 @@ function Eventos() {
 
   if (fetchError) {
     return (
-      <div className="fondo-personalizado">
+      <div className="fondo-personalizado" style={{ overflow: 'hidden' }}>
         <div className="container mt-5 pt-5">
           <div className="alert alert-danger text-center">
             <i className="bi bi-exclamation-triangle-fill me-2"></i>
@@ -233,12 +345,19 @@ function Eventos() {
   }
 
   return (
-    <div className="fondo-personalizado">
+    <div className="fondo-personalizado" style={{ 
+      minHeight: '100vh',
+      overflow: 'hidden',
+      backgroundAttachment: 'fixed',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundSize: 'cover'
+    }}>
       {/* Notificación flotante */}
       {notification.show && (
         <div className={`alert ${notification.type === 'error' ? 'alert-danger' : 'alert-success'} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`} 
              style={{ 
-               zIndex: 9999, 
+               zIndex: 1050, 
                minWidth: '350px',
                borderRadius: '15px',
                boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
@@ -275,10 +394,14 @@ function Eventos() {
         </div>
       )}
 
-      <div className={`container-main ${darkMode ? 'dark-mode-container' : ''}`}>
-        <div className="container mt-5 pt-5">
+      <div className={`container-main ${darkMode ? 'dark-mode-container' : ''}`} style={{ 
+        position: 'relative', 
+        zIndex: 1,
+        minHeight: '100vh'
+      }}>
+        <div className="container mt-5 pt-5" style={{ position: 'relative', zIndex: 2 }}>
           <h2 className={`mb-4 text-center ${darkMode ? 'text-white' : 'text-dark'}`}>Gestión de Eventos</h2>
-
+          
           {/* Formulario de agregar evento */}
           <form className="row g-3 mb-4" onSubmit={agregarEvento}>
             <div className="col-12 col-md-6">
@@ -340,6 +463,148 @@ function Eventos() {
             </div>
           </form>
 
+          {/* Buscador principal */}
+          <div className={`card mb-4 ${darkMode ? 'bg-dark text-white' : ''}`}>
+            <div className="card-body">
+              <div className="row g-3 align-items-center">
+                <div className="col-12 col-md-8">
+                  <div className="input-group">
+                    <span className="input-group-text">
+                      <i className="bi bi-search"></i>
+                    </span>
+                    
+                    {/* Mostrar input de texto o calendario según el filtro */}
+                    {filtroSeleccionado === 'fecha' ? (
+                      <input
+                        type="date"
+                        className={`form-control ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
+                        value={fechaFiltro}
+                        onChange={(e) => setFechaFiltro(e.target.value)}
+                      />
+                    ) : (
+                      <input
+                        type="text"
+                        className={`form-control ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
+                        placeholder={getPlaceholder()}
+                        value={terminoBusqueda}
+                        onChange={(e) => setTerminoBusqueda(e.target.value)}
+                      />
+                    )}
+                    
+                    {hayFiltrosActivos() && (
+                      <button
+                        className="btn btn-outline-danger d-flex align-items-center"
+                        type="button"
+                        onClick={limpiarFiltros}
+                        title="Limpiar filtros"
+                        style={{ minWidth: '45px' }}
+                      >
+                        <i className="bi bi-arrow-clockwise"></i>
+                        <span className="ms-1 d-none d-sm-inline">Limpiar</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="col-12 col-md-4">
+                  <div className="d-flex gap-2">
+                    <div className="dropdown flex-grow-1">
+                      <button
+                        className="btn btn-outline-primary w-100 dropdown-toggle"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                      >
+                        <i className="bi bi-funnel me-1"></i>
+                        Filtros
+                      </button>
+                      <ul className={`dropdown-menu ${darkMode ? 'dropdown-menu-dark' : ''}`}>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroSeleccionado === 'todo' ? 'active' : ''}`}
+                            onClick={() => manejarCambioFiltro('todo')}
+                          >
+                            <i className="bi bi-search me-2"></i>
+                            Buscar en todo
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroSeleccionado === 'titulo' ? 'active' : ''}`}
+                            onClick={() => manejarCambioFiltro('titulo')}
+                          >
+                            <i className="bi bi-tag me-2"></i>
+                            Por título
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroSeleccionado === 'encargado' ? 'active' : ''}`}
+                            onClick={() => manejarCambioFiltro('encargado')}
+                          >
+                            <i className="bi bi-person me-2"></i>
+                            Por encargado
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroSeleccionado === 'fecha' ? 'active' : ''}`}
+                            onClick={() => manejarCambioFiltro('fecha')}
+                          >
+                            <i className="bi bi-calendar me-2"></i>
+                            Por fecha
+                          </button>
+                        </li>
+                        <li><hr className="dropdown-divider" /></li>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroSeleccionado === 'descripcion' ? 'active' : ''}`}
+                            onClick={() => manejarCambioFiltro('descripcion')}
+                          >
+                            <i className="bi bi-text-paragraph me-2"></i>
+                            Por descripción
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroSeleccionado === 'ubicacion' ? 'active' : ''}`}
+                            onClick={() => manejarCambioFiltro('ubicacion')}
+                          >
+                            <i className="bi bi-geo-alt me-2"></i>
+                            Por ubicación
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Indicador de búsqueda activa */}
+              {hayFiltrosActivos() && (
+                <div className="mt-2">
+                  <small className={`text-muted ${darkMode ? 'text-light' : ''}`}>
+                    <i className="bi bi-funnel me-1"></i>
+                    {filtroSeleccionado === 'fecha' && fechaFiltro && `Filtrando por fecha: ${fechaFiltro}`}
+                    {filtroSeleccionado !== 'fecha' && terminoBusqueda && `Buscando "${terminoBusqueda}" en: `}
+                    {filtroSeleccionado !== 'fecha' && terminoBusqueda && (
+                      <span className="badge bg-primary ms-1">
+                        {filtroSeleccionado === 'todo' && 'Todos los campos'}
+                        {filtroSeleccionado === 'titulo' && 'Título'}
+                        {filtroSeleccionado === 'descripcion' && 'Descripción'}
+                        {filtroSeleccionado === 'ubicacion' && 'Ubicación'}
+                        {filtroSeleccionado === 'encargado' && 'Encargado'}
+                      </span>
+                    )}
+                    <span className="badge bg-info ms-2">
+                      {eventosFiltrados.length} de {eventos.length} eventos
+                    </span>
+                  </small>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Tabla de eventos */}
           <div className={`table-responsive ${darkMode ? 'table-dark' : 'table-light'}`}>
             <table className="table table-striped table-hover">
@@ -354,39 +619,50 @@ function Eventos() {
                 </tr>
               </thead>
               <tbody>
-                {eventos.map((evento) => (
-                  <tr key={evento.id}>
-                    <td>{evento.titulo}</td>
-                    <td className="truncate-text col-hide-mobile">{evento.descripcion}</td>
-                    <td className="truncate-text col-hide-mobile">{evento.ubicacion}</td>
-                    <td className="truncate-text col-hide-mobile">{evento.encargado}</td>
-                    <td>{evento.fecha ? evento.fecha.split('T')[0] : ''}</td>
-                    <td>
-                      <div className="d-flex flex-wrap">
-                        <button
-                          className="btn btn-custom-action btn-sm me-1 mb-1"
-                          onClick={() => verDetalles(evento)}
-                        >Ver Detalles</button>
-                        <button
-                          className="btn btn-custom-primary btn-sm me-1 mb-1"
-                          onClick={() => iniciarEdicion(evento)}
-                        >Editar</button>
-                        <button
-                          className="btn btn-custom-danger btn-sm mb-1"
-                          onClick={() => eliminarEvento(evento.id)}
-                        >Eliminar</button>
-                        <Link to={`/eventos/${evento.id}`} className="btn btn-info btn-sm">Ver Tareas</Link>
-                      </div>
+                {eventosFiltrados.length > 0 ? (
+                  eventosFiltrados.map((evento) => (
+                    <tr key={evento.id}>
+                      <td>{evento.titulo}</td>
+                      <td className="truncate-text col-hide-mobile">{evento.descripcion}</td>
+                      <td className="truncate-text col-hide-mobile">{evento.ubicacion}</td>
+                      <td className="truncate-text col-hide-mobile">{evento.encargado}</td>
+                      <td>{evento.fecha ? evento.fecha.split('T')[0] : ''}</td>
+                      <td>
+                        <div className="d-flex flex-wrap">
+                          <button
+                            className="btn btn-custom-action btn-sm me-1 mb-1"
+                            onClick={() => verDetalles(evento)}
+                          >Ver Detalles</button>
+                          <button
+                            className="btn btn-custom-primary btn-sm me-1 mb-1"
+                            onClick={() => iniciarEdicion(evento)}
+                          >Editar</button>
+                          <button
+                            className="btn btn-custom-danger btn-sm mb-1"
+                            onClick={() => eliminarEvento(evento.id)}
+                          >Eliminar</button>
+                          <Link to={`/eventos/${evento.id}`} className="btn btn-info btn-sm">Ver Tareas</Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" className="text-center py-4">
+                      <i className="bi bi-inbox display-4 d-block text-muted mb-2"></i>
+                      {hayFiltrosActivos() 
+                        ? 'No se encontraron eventos que coincidan con los filtros aplicados.' 
+                        : 'No hay eventos registrados.'}
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
 
           {/* Modal de edición/detalle de evento */}
           {(modoEditar || modoVerDetalles) && (
-            <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1060 }}>
               <div className="modal-dialog">
                 <div className={`modal-content ${darkMode ? 'bg-dark text-white' : ''}`}>
                   <form className="row g-3" onSubmit={guardarCambios}>

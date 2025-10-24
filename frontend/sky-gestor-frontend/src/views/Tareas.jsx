@@ -1,20 +1,19 @@
-
-// sky-gestor-frontend/src/views/Tareas.jsx
-import React, { useEffect, useState, useCallback } from 'react'; // <--- Añade useCallback aquí
-import '../styles/estilosEventos.css'; // O tu archivo CSS para tareas
+import React, { useEffect, useState, useCallback } from 'react';
+import '../styles/estilosEventos.css';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext.js';
 
 function Tareas() {
-  const { user } = useAuth(); // Obtiene el usuario logueado
+  const { user } = useAuth();
   const { darkMode } = useTheme();
   const [tareas, setTareas] = useState([]);
+  const [tareasFiltradas, setTareasFiltradas] = useState([]);
   const [titulo, setTitulo] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [estado, setEstado] = useState('pendiente');
   const [fecha, setFecha] = useState('');
-  const [usuarioAsignado, setUsuarioAsignado] = useState(''); // Estado para el ID del usuario seleccionado
-  const [eventoAsociado, setEventoAsociado] = useState('');    // Estado para el ID del evento seleccionado
+  const [usuarioAsignado, setUsuarioAsignado] = useState('');
+  const [eventoAsociado, setEventoAsociado] = useState('');
   const [modoEditar, setModoEditar] = useState(false);
   const [modoVerDetalles, setModoVerDetalles] = useState(false);
   const [tareaActual, setTareaActual] = useState(null);
@@ -23,8 +22,21 @@ function Tareas() {
   const [eventosDisponibles, setEventosDisponibles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
+  const [notification, setNotification] = useState({ show: false, message: '', type: '' });
 
-  // Envuelve fetchTareas en useCallback
+  // Estados para el buscador y filtros
+  const [terminoBusqueda, setTerminoBusqueda] = useState('');
+  const [filtroSeleccionado, setFiltroSeleccionado] = useState('todo');
+  const [fechaFiltro, setFechaFiltro] = useState('');
+
+  // Mostrar notificación
+  const showNotification = (message, type = 'success') => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => {
+      setNotification({ show: false, message: '', type: '' });
+    }, 3000);
+  };
+
   const fetchTareas = useCallback(async () => {
     if (!user) {
       setLoading(false);
@@ -40,6 +52,7 @@ function Tareas() {
       if (res.ok) {
         const data = await res.json();
         setTareas(data);
+        setTareasFiltradas(data);
         setFetchError(null);
       } else {
         const errorData = await res.json();
@@ -52,9 +65,8 @@ function Tareas() {
     } finally {
       setLoading(false);
     }
-  }, [user]); // <-- Dependencia: user
+  }, [user]);
 
-  // Envuelve fetchDatosSelectores en useCallback
   const fetchDatosSelectores = useCallback(async () => {
     if (!user) return;
     try {
@@ -74,15 +86,128 @@ function Tareas() {
     } catch (error) {
         console.error('Error al cargar datos de selectores:', error);
     }
-  }, [user]); // <-- Dependencia: user
+  }, [user]);
 
   useEffect(() => {
     if (user) {
       fetchTareas();
       fetchDatosSelectores();
     }
-  }, [user, fetchTareas, fetchDatosSelectores]); // <-- Añade fetchTareas y fetchDatosSelectores aquí
+  }, [user, fetchTareas, fetchDatosSelectores]);
 
+  // Aplicar búsqueda y filtros
+  const aplicarBusquedaYFiltros = useCallback(() => {
+    if (!terminoBusqueda.trim() && !fechaFiltro) {
+      setTareasFiltradas(tareas);
+      return;
+    }
+
+    let tareasFiltradas = [...tareas];
+
+    // Si hay filtro de fecha, aplicarlo primero
+    if (fechaFiltro && filtroSeleccionado === 'fecha') {
+      tareasFiltradas = tareas.filter(tarea =>
+        tarea.fecha && tarea.fecha.split('T')[0] === fechaFiltro
+      );
+    }
+
+    // Si hay término de búsqueda, aplicarlo
+    if (terminoBusqueda.trim()) {
+      const termino = terminoBusqueda.toLowerCase().trim();
+      
+      switch (filtroSeleccionado) {
+        case 'todo':
+          tareasFiltradas = tareasFiltradas.filter(tarea =>
+            (tarea.titulo && tarea.titulo.toLowerCase().includes(termino)) ||
+            (tarea.descripcion && tarea.descripcion.toLowerCase().includes(termino)) ||
+            (tarea.estado && tarea.estado.toLowerCase().includes(termino)) ||
+            (tarea.usuarioAsignadoNombre && tarea.usuarioAsignadoNombre.toLowerCase().includes(termino)) ||
+            (tarea.eventoAsociadoTitulo && tarea.eventoAsociadoTitulo.toLowerCase().includes(termino))
+          );
+          break;
+        
+        case 'titulo':
+          tareasFiltradas = tareasFiltradas.filter(tarea =>
+            tarea.titulo && tarea.titulo.toLowerCase().includes(termino)
+          );
+          break;
+        
+        case 'descripcion':
+          tareasFiltradas = tareasFiltradas.filter(tarea =>
+            tarea.descripcion && tarea.descripcion.toLowerCase().includes(termino)
+          );
+          break;
+        
+        case 'estado':
+          tareasFiltradas = tareasFiltradas.filter(tarea =>
+            tarea.estado && tarea.estado.toLowerCase().includes(termino)
+          );
+          break;
+        
+        case 'usuario':
+          tareasFiltradas = tareasFiltradas.filter(tarea =>
+            tarea.usuarioAsignadoNombre && tarea.usuarioAsignadoNombre.toLowerCase().includes(termino)
+          );
+          break;
+        
+        case 'evento':
+          tareasFiltradas = tareasFiltradas.filter(tarea =>
+            tarea.eventoAsociadoTitulo && tarea.eventoAsociadoTitulo.toLowerCase().includes(termino)
+          );
+          break;
+        
+        default:
+          break;
+      }
+    }
+
+    setTareasFiltradas(tareasFiltradas);
+  }, [tareas, terminoBusqueda, filtroSeleccionado, fechaFiltro]);
+
+  // Efecto para aplicar búsqueda cuando cambian los términos
+  useEffect(() => {
+    aplicarBusquedaYFiltros();
+  }, [aplicarBusquedaYFiltros]);
+
+  // Limpiar todos los filtros
+  const limpiarFiltros = () => {
+    setTerminoBusqueda('');
+    setFechaFiltro('');
+    setTareasFiltradas(tareas);
+  };
+
+  // Manejar cambio de filtro
+  const manejarCambioFiltro = (filtro) => {
+    setFiltroSeleccionado(filtro);
+    setFechaFiltro('');
+  };
+
+  // Obtener placeholder según filtro seleccionado
+  const getPlaceholder = () => {
+    switch (filtroSeleccionado) {
+      case 'todo':
+        return 'Buscar en todos los campos...';
+      case 'titulo':
+        return 'Buscar por título...';
+      case 'descripcion':
+        return 'Buscar en descripción...';
+      case 'estado':
+        return 'Buscar por estado...';
+      case 'usuario':
+        return 'Buscar por usuario...';
+      case 'evento':
+        return 'Buscar por evento...';
+      case 'fecha':
+        return 'Seleccione una fecha...';
+      default:
+        return 'Buscar...';
+    }
+  };
+
+  // Verificar si hay filtros activos
+  const hayFiltrosActivos = () => {
+    return terminoBusqueda || fechaFiltro;
+  };
 
   const validarFormulario = () => {
     const erroresTemp = {};
@@ -122,9 +247,8 @@ function Tareas() {
         })
       });
       if (res.ok) {
-        alert('Tarea agregada con éxito');
-        await fetchTareas(); // Refrescar la lista de tareas
-        // Limpiar el formulario
+        showNotification('Tarea agregada con éxito');
+        await fetchTareas();
         setTitulo('');
         setDescripcion('');
         setEstado('pendiente');
@@ -134,16 +258,15 @@ function Tareas() {
         setErrores({});
       } else {
         const errorData = await res.json();
-        // Manejo específico de errores 400 (validación)
         if (res.status === 400) {
-          alert(`Error de validación: ${errorData.error}`);
+          showNotification(`Error de validación: ${errorData.error}`, 'error');
         } else {
-          alert('Error: ' + (errorData.error || 'No se pudo agregar la tarea.'));
+          showNotification('Error: ' + (errorData.error || 'No se pudo agregar la tarea.'), 'error');
         }
       }
     } catch (error) {
       console.error('Error al agregar tarea:', error);
-      alert('Error al conectar con el servidor.');
+      showNotification('Error al conectar con el servidor.', 'error');
     }
   };
 
@@ -160,15 +283,15 @@ function Tareas() {
         }
       });
       if (res.ok) {
-        alert('Tarea eliminada');
-        await fetchTareas(); // Refrescar la lista de tareas
+        showNotification('Tarea eliminada correctamente');
+        await fetchTareas();
       } else {
         const errorData = await res.json();
-        alert('Error al eliminar tarea: ' + (errorData.error || 'No se pudo eliminar la tarea.'));
+        showNotification('Error al eliminar tarea: ' + (errorData.error || 'No se pudo eliminar la tarea.'), 'error');
       }
     } catch (error) {
       console.error('Error al eliminar tarea:', error);
-      alert('Error al conectar con el servidor.');
+      showNotification('Error al conectar con el servidor.', 'error');
     }
   };
 
@@ -233,23 +356,23 @@ function Tareas() {
         })
       });
       if (res.ok) {
-        alert('Tarea actualizada');
-        await fetchTareas(); // Refrescar la lista
-        cerrarModal(); // Cerrar el modal
+        showNotification('Tarea actualizada correctamente');
+        await fetchTareas();
+        cerrarModal();
       } else {
         const errorData = await res.json();
-          // Manejo específico de errores 400 (validación)
         if (res.status === 400) {
-          alert(`Error de validación: ${errorData.error}`);
+          showNotification(`Error de validación: ${errorData.error}`, 'error');
         } else {
-          alert('Error al actualizar tarea: ' + (errorData.error || 'No se pudo actualizar la tarea.'));
+          showNotification('Error al actualizar tarea: ' + (errorData.error || 'No se pudo actualizar la tarea.'), 'error');
         }
       }
     } catch (error) {
       console.error('Error al actualizar tarea:', error);
-      alert('Error al conectar con el servidor.');
+      showNotification('Error al conectar con el servidor.', 'error');
     }
   };
+
   const estadoColor = (estado) => {
     switch (estado) {
       case 'pendiente': return 'warning';
@@ -259,297 +382,511 @@ function Tareas() {
     }
   };
 
-
   if (loading) {
-      return <div className="text-center mt-5">Cargando tareas...</div>;
+    return (
+      <div className="fondo-personalizado" style={{ overflow: 'hidden' }}>
+        <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Cargando tareas...</span>
+          </div>
+          <span className="ms-2">Cargando tareas...</span>
+        </div>
+      </div>
+    );
   }
 
   if (fetchError) {
-      return <div className="alert alert-danger text-center mt-5">{fetchError}</div>;
+    return (
+      <div className="fondo-personalizado" style={{ overflow: 'hidden' }}>
+        <div className="container mt-5 pt-5">
+          <div className="alert alert-danger text-center">
+            <i className="bi bi-exclamation-triangle-fill me-2"></i>
+            {fetchError}
+          </div>
+        </div>
+      </div>
+    );
   }
 
-    return (
-        // Asegúrate de que el contenedor principal también se adapte al tema oscuro
-        // Y aquí usamos el fondo personalizado, pero el container-main ahora tiene su propia lógica de color en CSS.
-        // Este div solo debería proporcionar el fondo general si es que lo quieres para toda la página de tareas.
-        // Si el fondo es solo para el formulario y la tabla, entonces el body lo manejaría.
-        <div className="fondo-personalizado" /* style={{ backgroundImage: 'url("/imagen/IMG_5994.JPEG")' }} */ >
-            {/* Aplica la clase condicional también a container-main si no está ya en estilosEventos.css */}
-            {/* Si ya está en estilosEventos.css para body.modo-oscuro .container-main, entonces no necesitas esto aquí */}
-            <div className={`container-main ${darkMode ? 'dark-mode-container' : ''}`}> {/* Añadida clase condicional si no está en CSS */}
-                <div className="container mt-5 pt-5">
-                    {/* Aplica la clase condicional al título h2 */}
-                    <h2 className={`mb-4 text-center ${darkMode ? 'text-white' : 'text-dark'}`}>Gestión de Tareas</h2>
+  return (
+    <div className="fondo-personalizado" style={{ 
+      minHeight: '100vh',
+      overflow: 'hidden',
+      backgroundAttachment: 'fixed',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundSize: 'cover'
+    }}>
+      {/* Notificación flotante */}
+      {notification.show && (
+        <div className={`alert ${notification.type === 'error' ? 'alert-danger' : 'alert-success'} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`} 
+             style={{ 
+               zIndex: 1050, 
+               minWidth: '350px',
+               borderRadius: '15px',
+               boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+               border: 'none',
+               display: 'flex',
+               alignItems: 'center',
+               gap: '10px'
+             }} 
+             role="alert">
+          <div style={{
+            width: '30px',
+            height: '30px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: notification.type === 'error' ? '#dc3545' : '#198754',
+            color: 'white',
+            fontSize: '14px',
+            fontWeight: 'bold'
+          }}>
+            {notification.type === 'error' ? '!' : '✓'}
+          </div>
+          <div style={{ flex: 1 }}>
+            <strong>{notification.type === 'error' ? 'Error' : 'Éxito'}</strong>
+            <div style={{ fontSize: '14px', marginTop: '2px' }}>{notification.message}</div>
+          </div>
+          <button 
+            type="button" 
+            className="btn-close" 
+            onClick={() => setNotification({ show: false, message: '', type: '' })}
+            style={{ marginLeft: '10px' }}
+          ></button>
+        </div>
+      )}
 
-                    {/* Formulario: aplica clases condicionales a labels y inputs/selects */}
-                    <form className="row g-3 mb-4" onSubmit={agregarTarea}>
-                        <div className="col-12 col-md-6">
-                            <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Título</label>
-                            <input
-                                className={`form-control ${errores.titulo ? 'is-invalid' : ''} ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
-                                value={titulo}
-                                onChange={e => setTitulo(e.target.value)}
-                                required
-                            />
-                            {errores.titulo && <div className="invalid-feedback">{errores.titulo}</div>}
+      <div className={`container-main ${darkMode ? 'dark-mode-container' : ''}`} style={{ 
+        position: 'relative', 
+        zIndex: 1,
+        minHeight: '100vh'
+      }}>
+        <div className="container mt-5 pt-5" style={{ position: 'relative', zIndex: 2 }}>
+          <h2 className={`mb-4 text-center ${darkMode ? 'text-white' : 'text-dark'}`}>Gestión de Tareas</h2>
+         
+          {/* Formulario de agregar tarea */}
+          <form className="row g-3 mb-4" onSubmit={agregarTarea}>
+            <div className="col-12 col-md-6">
+              <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Título</label>
+              <input
+                className={`form-control ${errores.titulo ? 'is-invalid' : ''} ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
+                value={titulo}
+                onChange={e => setTitulo(e.target.value)}
+                required
+              />
+              {errores.titulo && <div className="invalid-feedback">{errores.titulo}</div>}
+            </div>
+
+            <div className="col-12">
+              <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Descripción</label>
+              <textarea
+                className={`form-control ${errores.descripcion ? 'is-invalid' : ''} ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
+                rows="3"
+                value={descripcion}
+                onChange={e => setDescripcion(e.target.value)}
+                required
+              />
+              {errores.descripcion && <div className="invalid-feedback">{errores.descripcion}</div>}
+            </div>
+
+            <div className="col-12 col-md-4">
+              <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Estado</label>
+              <select
+                className={`form-select ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
+                value={estado}
+                onChange={e => setEstado(e.target.value)}
+              >
+                <option value="pendiente">Pendiente</option>
+                <option value="en progreso">En progreso</option>
+                <option value="completada">Completada</option>
+              </select>
+            </div>
+
+            <div className="col-12 col-md-4">
+              <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Fecha</label>
+              <input type="date"
+                className={`form-control ${errores.fecha ? 'is-invalid' : ''} ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
+                value={fecha}
+                onChange={e => setFecha(e.target.value)}
+                required
+              />
+              {errores.fecha && <div className="invalid-feedback">{errores.fecha}</div>}
+            </div>
+
+            <div className="col-12 col-md-4">
+              <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Asignar a</label>
+              <select
+                className={`form-select ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
+                value={usuarioAsignado}
+                onChange={e => setUsuarioAsignado(e.target.value)}
+              >
+                <option value="">No Asignado</option>
+                {usuariosDisponibles.map(userOption => (
+                  <option key={userOption.id} value={userOption.id}>{userOption.nombre}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-12 col-md-4">
+              <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Asociar a Evento</label>
+              <select
+                className={`form-select ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
+                value={eventoAsociado}
+                onChange={e => setEventoAsociado(e.target.value)}
+              >
+                <option value="">Sin Evento</option>
+                {eventosDisponibles.map(eventOption => (
+                  <option key={eventOption.id} value={eventOption.id}>{eventOption.titulo}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-12">
+              <button type="submit" className="btn btn-custom-success w-100 w-md-auto">
+                Agregar Tarea
+              </button>
+            </div>
+          </form>
+
+          {/* Buscador principal */}
+          <div className={`card mb-4 ${darkMode ? 'bg-dark text-white' : ''}`}>
+            <div className="card-body">
+              <div className="row g-3 align-items-center">
+                <div className="col-12 col-md-8">
+                  <div className="input-group">
+                    <span className="input-group-text">
+                      <i className="bi bi-search"></i>
+                    </span>
+                    
+                    {/* Mostrar input de texto o calendario según el filtro */}
+                    {filtroSeleccionado === 'fecha' ? (
+                      <input
+                        type="date"
+                        className={`form-control ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
+                        value={fechaFiltro}
+                        onChange={(e) => setFechaFiltro(e.target.value)}
+                      />
+                    ) : (
+                      <input
+                        type="text"
+                        className={`form-control ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
+                        placeholder={getPlaceholder()}
+                        value={terminoBusqueda}
+                        onChange={(e) => setTerminoBusqueda(e.target.value)}
+                      />
+                    )}
+                    
+                    {hayFiltrosActivos() && (
+                      <button
+                        className="btn btn-outline-danger d-flex align-items-center"
+                        type="button"
+                        onClick={limpiarFiltros}
+                        title="Limpiar filtros"
+                        style={{ minWidth: '45px' }}
+                      >
+                        <i className="bi bi-arrow-clockwise"></i>
+                        <span className="ms-1 d-none d-sm-inline">Limpiar</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="col-12 col-md-4">
+                  <div className="d-flex gap-2">
+                    <div className="dropdown flex-grow-1">
+                      <button
+                        className="btn btn-outline-primary w-100 dropdown-toggle"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                      >
+                        <i className="bi bi-funnel me-1"></i>
+                        Filtros
+                      </button>
+                      <ul className={`dropdown-menu ${darkMode ? 'dropdown-menu-dark' : ''}`}>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroSeleccionado === 'todo' ? 'active' : ''}`}
+                            onClick={() => manejarCambioFiltro('todo')}
+                          >
+                            <i className="bi bi-search me-2"></i>
+                            Buscar en todo
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroSeleccionado === 'titulo' ? 'active' : ''}`}
+                            onClick={() => manejarCambioFiltro('titulo')}
+                          >
+                            <i className="bi bi-tag me-2"></i>
+                            Por título
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroSeleccionado === 'estado' ? 'active' : ''}`}
+                            onClick={() => manejarCambioFiltro('estado')}
+                          >
+                            <i className="bi bi-circle me-2"></i>
+                            Por estado
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroSeleccionado === 'fecha' ? 'active' : ''}`}
+                            onClick={() => manejarCambioFiltro('fecha')}
+                          >
+                            <i className="bi bi-calendar me-2"></i>
+                            Por fecha
+                          </button>
+                        </li>
+                        <li><hr className="dropdown-divider" /></li>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroSeleccionado === 'descripcion' ? 'active' : ''}`}
+                            onClick={() => manejarCambioFiltro('descripcion')}
+                          >
+                            <i className="bi bi-text-paragraph me-2"></i>
+                            Por descripción
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroSeleccionado === 'usuario' ? 'active' : ''}`}
+                            onClick={() => manejarCambioFiltro('usuario')}
+                          >
+                            <i className="bi bi-person me-2"></i>
+                            Por usuario
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroSeleccionado === 'evento' ? 'active' : ''}`}
+                            onClick={() => manejarCambioFiltro('evento')}
+                          >
+                            <i className="bi bi-calendar-event me-2"></i>
+                            Por evento
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Indicador de búsqueda activa */}
+              {hayFiltrosActivos() && (
+                <div className="mt-2">
+                  <small className={`text-muted ${darkMode ? 'text-light' : ''}`}>
+                    <i className="bi bi-funnel me-1"></i>
+                    {filtroSeleccionado === 'fecha' && fechaFiltro && `Filtrando por fecha: ${fechaFiltro}`}
+                    {filtroSeleccionado !== 'fecha' && terminoBusqueda && `Buscando "${terminoBusqueda}" en: `}
+                    {filtroSeleccionado !== 'fecha' && terminoBusqueda && (
+                      <span className="badge bg-primary ms-1">
+                        {filtroSeleccionado === 'todo' && 'Todos los campos'}
+                        {filtroSeleccionado === 'titulo' && 'Título'}
+                        {filtroSeleccionado === 'descripcion' && 'Descripción'}
+                        {filtroSeleccionado === 'estado' && 'Estado'}
+                        {filtroSeleccionado === 'usuario' && 'Usuario'}
+                        {filtroSeleccionado === 'evento' && 'Evento'}
+                      </span>
+                    )}
+                    <span className="badge bg-info ms-2">
+                      {tareasFiltradas.length} de {tareas.length} tareas
+                    </span>
+                  </small>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Tabla de tareas */}
+          <div className={`table-responsive ${darkMode ? 'table-dark' : 'table-light'}`}>
+            <table className="table table-striped table-hover">
+              <thead>
+                <tr>
+                  <th>Título</th>
+                  <th className="d-none d-sm-table-cell">Descripción</th>
+                  <th>Estado</th>
+                  <th>Fecha</th>
+                  <th className="d-none d-md-table-cell">Asignado a</th>
+                  <th className="d-none d-md-table-cell">Evento Asociado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tareasFiltradas.length > 0 ? (
+                  tareasFiltradas.map((tarea) => (
+                    <tr key={tarea.id}>
+                      <td>{tarea.titulo}</td>
+                      <td className="d-none d-sm-table-cell truncate-text">{tarea.descripcion}</td>
+                      <td>
+                        <span className={`badge bg-${estadoColor(tarea.estado)}`}>
+                          {tarea.estado}
+                        </span>
+                      </td>
+                      <td>{tarea.fecha ? tarea.fecha.split('T')[0] : ''}</td>
+                      <td className="d-none d-md-table-cell">{tarea.usuarioAsignadoNombre || 'N/A'}</td>
+                      <td className="d-none d-md-table-cell">{tarea.eventoAsociadoTitulo || 'N/A'}</td>
+                      <td>
+                        <div className="d-flex flex-wrap">
+                          <button
+                            className="btn btn-custom-action btn-sm me-1 mb-1"
+                            onClick={() => verDetalles(tarea)}
+                          >Ver</button>
+                          <button
+                            className="btn btn-custom-primary btn-sm me-1 mb-1"
+                            onClick={() => iniciarEdicion(tarea)}
+                          >Editar</button>
+                          <button
+                            className="btn btn-custom-danger btn-sm mb-1"
+                            onClick={() => eliminarTarea(tarea.id)}
+                          >Eliminar</button>
                         </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="text-center py-4">
+                      <i className="bi bi-inbox display-4 d-block text-muted mb-2"></i>
+                      {hayFiltrosActivos() 
+                        ? 'No se encontraron tareas que coincidan con los filtros aplicados.' 
+                        : 'No hay tareas registradas.'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
 
-                        <div className="col-12">
-                            <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Descripción</label>
-                            <textarea
-                                className={`form-control ${errores.descripcion ? 'is-invalid' : ''} ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
-                                rows="3"
-                                value={descripcion}
-                                onChange={e => setDescripcion(e.target.value)}
-                                required
-                            />
-                            {errores.descripcion && <div className="invalid-feedback">{errores.descripcion}</div>}
-                        </div>
-
-                        <div className="col-12 col-md-4">
-                            <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Estado</label>
-                            <select
-                                className={`form-select ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
-                                value={estado}
-                                onChange={e => setEstado(e.target.value)}
-                            >
-                                <option value="pendiente">Pendiente</option>
-                                <option value="en progreso">En progreso</option>
-                                <option value="completada">Completada</option>
-                            </select>
-                        </div>
-
-                        <div className="col-12 col-md-4">
-                            <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Fecha</label>
-                            <input type="date"
-                                className={`form-control ${errores.fecha ? 'is-invalid' : ''} ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
-                                value={fecha}
-                                onChange={e => setFecha(e.target.value)}
-                                required
-                            />
-                            {errores.fecha && <div className="invalid-feedback">{errores.fecha}</div>}
-                        </div>
-
-                        <div className="col-12 col-md-4">
-                            <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Asignar a</label>
-                            <select
-                                className={`form-select ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
-                                value={usuarioAsignado}
-                                onChange={e => setUsuarioAsignado(e.target.value)}
-                            >
-                                <option value="">No Asignado</option>
-                                {usuariosDisponibles.map(userOption => (
-                                    <option key={userOption.id} value={userOption.id}>{userOption.nombre}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="col-12 col-md-4">
-                            <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Asociar a Evento</label>
-                            <select
-                                className={`form-select ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
-                                value={eventoAsociado}
-                                onChange={e => setEventoAsociado(e.target.value)}
-                            >
-                                <option value="">Sin Evento</option>
-                                {eventosDisponibles.map(eventOption => (
-                                    <option key={eventOption.id} value={eventOption.id}>{eventOption.titulo}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="col-12">
-                            <button type="submit" className="btn btn-custom-success w-100 w-md-auto">
-                                Agregar Tarea
-                            </button>
-                        </div>
-                    </form>
-
-                    {/* Tabla para mostrar la lista de tareas */}
-                    {/* Aplica la clase table-responsive y table-dark/table-light condicional */}
-                    <div className={`table-responsive ${darkMode ? 'table-dark' : 'table-light'}`}>
-                      <table className="table table-striped table-hover">
-                          <thead>
-                              <tr>
-                                  <th>Título</th>
-                                  <th className="d-none d-sm-table-cell">Descripción</th>
-                                  <th>Estado</th>
-                                  <th>Fecha</th>
-                                  <th className="d-none d-md-table-cell">Asignado a</th>
-                                  <th className="d-none d-md-table-cell">Evento Asociado</th>
-                                  <th>Acciones</th>
-                              </tr>
-                          </thead>
-                          <tbody>
-                              {tareas.map((tarea) => (
-                                  <tr key={tarea.id}>
-                                      <td>{tarea.titulo}</td>
-                                      <td className="d-none d-sm-table-cell truncate-text">{tarea.descripcion}</td>
-                                      <td>
-                                          <span className={`badge bg-${estadoColor(tarea.estado)}`}>
-                                              {tarea.estado}
-                                          </span>
-                                      </td>
-                                      <td>{tarea.fecha ? tarea.fecha.split('T')[0] : ''}</td>
-                                      <td className="d-none d-md-table-cell">{tarea.usuarioAsignadoNombre || 'N/A'}</td>
-                                      <td className="d-none d-md-table-cell">{tarea.eventoAsociadoTitulo || 'N/A'}</td>
-                                      <td>
-                                          <div className="d-flex flex-wrap">
-                                              <button
-                                                  className="btn btn-custom-action btn-sm me-1 mb-1"
-                                                  onClick={() => verDetalles(tarea)}
-                                              >Ver</button>
-                                              <button
-                                                  className="btn btn-custom-primary btn-sm me-1 mb-1"
-                                                  onClick={() => iniciarEdicion(tarea)}
-                                              >Editar</button>
-                                              <button
-                                                  className="btn btn-custom-danger btn-sm mb-1"
-                                                  onClick={() => eliminarTarea(tarea.id)}
-                                              >Eliminar</button>
-                                          </div>
-                                      </td>
-                                  </tr>
-                              ))}
-                          </tbody>
-                      </table>
+          {/* Modal de edición/detalle de tarea */}
+          {(modoEditar || modoVerDetalles) && (
+            <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1060 }}>
+              <div className="modal-dialog">
+                <div className={`modal-content ${darkMode ? 'bg-dark text-white' : ''}`}>
+                  <form className="row g-3" onSubmit={guardarCambios}>
+                    <div className="modal-header">
+                      <h5 className={`modal-title ${darkMode ? 'text-white' : 'text-dark'}`}>
+                        {modoEditar ? 'Editar Tarea' : 'Detalles de la Tarea'}
+                      </h5>
+                      <button
+                        type="button"
+                        className="btn-close"
+                        onClick={cerrarModal}
+                        data-bs-theme={darkMode ? 'dark' : 'light'}
+                      ></button>
                     </div>
 
-                    {/* Modal de edición/detalle de tarea */}
-                    {(modoEditar || modoVerDetalles) && (
-                        <div className="modal show d-block" tabIndex="-1">
-                            <div className="modal-dialog">
-                                {/* Aplica la clase condicional al modal-content */}
-                                <div className={`modal-content ${darkMode ? 'bg-dark text-white' : ''}`}>
-                                    <form className="row g-3" onSubmit={guardarCambios}>
-                                        <div className="modal-header">
-                                            {/* Aplica la clase condicional al título del modal */}
-                                            <h5 className={`modal-title ${darkMode ? 'text-white' : 'text-dark'}`}>
-                                                {modoEditar ? 'Editar Tarea' : 'Detalles de la Tarea'}
-                                            </h5>
-                                            <button
-                                                type="button"
-                                                className="btn-close"
-                                                onClick={cerrarModal}
-                                                // Considera añadir un data-bs-theme="dark" si quieres un botón de cierre blanco en modo oscuro
-                                                // o si quieres que se vea bien en ambos modos sin el color por defecto
-                                                data-bs-theme={darkMode ? 'dark' : 'light'}
-                                            ></button>
-                                        </div>
+                    <div className="modal-body">
+                      <div className="col-12">
+                        <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Título</label>
+                        <input
+                          className={`form-control ${errores.titulo && modoEditar ? 'is-invalid' : ''} ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
+                          value={titulo}
+                          onChange={e => setTitulo(e.target.value)}
+                          required
+                          disabled={modoVerDetalles}
+                        />
+                        {errores.titulo && modoEditar && <div className="invalid-feedback">{errores.titulo}</div>}
+                      </div>
 
-                                        <div className="modal-body">
-                                            {/* Labels e Inputs del modal con clases condicionales */}
-                                            {/* Título */}
-                                            <div className="col-12">
-                                                <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Título</label>
-                                                <input
-                                                    className={`form-control ${errores.titulo && modoEditar ? 'is-invalid' : ''} ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
-                                                    value={titulo}
-                                                    onChange={e => setTitulo(e.target.value)}
-                                                    required
-                                                    disabled={modoVerDetalles}
-                                                />
-                                                {errores.titulo && modoEditar && <div className="invalid-feedback">{errores.titulo}</div>}
-                                            </div>
+                      <div className="col-12">
+                        <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Descripción</label>
+                        <textarea
+                          className={`form-control ${errores.descripcion && modoEditar ? 'is-invalid' : ''} ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
+                          value={descripcion}
+                          onChange={e => setDescripcion(e.target.value)}
+                          rows="3"
+                          required
+                          disabled={modoVerDetalles}
+                        />
+                        {errores.descripcion && modoEditar && <div className="invalid-feedback">{errores.descripcion}</div>}
+                      </div>
 
-                                            {/* Descripción */}
-                                            <div className="col-12">
-                                                <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Descripción</label>
-                                                <textarea
-                                                    className={`form-control ${errores.descripcion && modoEditar ? 'is-invalid' : ''} ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
-                                                    value={descripcion}
-                                                    onChange={e => setDescripcion(e.target.value)}
-                                                    rows="3"
-                                                    required
-                                                    disabled={modoVerDetalles}
-                                                />
-                                                {errores.descripcion && modoEditar && <div className="invalid-feedback">{errores.descripcion}</div>}
-                                            </div>
+                      <div className="col-12 col-md-6">
+                        <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Estado</label>
+                        <select
+                          className={`form-select ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
+                          value={estado}
+                          onChange={e => setEstado(e.target.value)}
+                          disabled={modoVerDetalles}
+                        >
+                          <option value="pendiente">Pendiente</option>
+                          <option value="en progreso">En progreso</option>
+                          <option value="completada">Completada</option>
+                        </select>
+                      </div>
 
-                                            {/* Estado */}
-                                            <div className="col-12 col-md-6">
-                                                <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Estado</label>
-                                                <select
-                                                    className={`form-select ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
-                                                    value={estado}
-                                                    onChange={e => setEstado(e.target.value)}
-                                                    disabled={modoVerDetalles}
-                                                >
-                                                    <option value="pendiente">Pendiente</option>
-                                                    <option value="en progreso">En progreso</option>
-                                                    <option value="completada">Completada</option>
-                                                </select>
-                                            </div>
+                      <div className="col-12 col-md-6">
+                        <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Fecha</label>
+                        <input
+                          type="date"
+                          className={`form-control ${errores.fecha && modoEditar ? 'is-invalid' : ''} ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
+                          value={fecha}
+                          onChange={e => setFecha(e.target.value)}
+                          required
+                          disabled={modoVerDetalles}
+                        />
+                        {errores.fecha && modoEditar && <div className="invalid-feedback">{errores.fecha}</div>}
+                      </div>
 
-                                            {/* Fecha */}
-                                            <div className="col-12 col-md-6">
-                                                <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Fecha</label>
-                                                <input
-                                                    type="date"
-                                                    className={`form-control ${errores.fecha && modoEditar ? 'is-invalid' : ''} ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
-                                                    value={fecha}
-                                                    onChange={e => setFecha(e.target.value)}
-                                                    required
-                                                    disabled={modoVerDetalles}
-                                                />
-                                                {errores.fecha && modoEditar && <div className="invalid-feedback">{errores.fecha}</div>}
-                                            </div>
+                      <div className="col-12 col-md-6">
+                        <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Asignar a</label>
+                        <select
+                          className={`form-select ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
+                          value={usuarioAsignado}
+                          onChange={e => setUsuarioAsignado(e.target.value)}
+                          disabled={modoVerDetalles}
+                        >
+                          <option value="">No Asignado</option>
+                          {usuariosDisponibles.map(userOption => (
+                            <option key={userOption.id} value={userOption.id}>{userOption.nombre}</option>
+                          ))}
+                        </select>
+                      </div>
 
-                                            {/* Selectores de Asignación y Evento */}
-                                            <div className="col-12 col-md-6">
-                                                <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Asignar a</label>
-                                                <select
-                                                    className={`form-select ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
-                                                    value={usuarioAsignado}
-                                                    onChange={e => setUsuarioAsignado(e.target.value)}
-                                                    disabled={modoVerDetalles}
-                                                >
-                                                    <option value="">No Asignado</option>
-                                                    {usuariosDisponibles.map(userOption => (
-                                                        <option key={userOption.id} value={userOption.id}>{userOption.nombre}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
+                      <div className="col-12 col-md-6">
+                        <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Asociar a Evento</label>
+                        <select
+                          className={`form-select ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
+                          value={eventoAsociado}
+                          onChange={e => setEventoAsociado(e.target.value)}
+                          disabled={modoVerDetalles}
+                        >
+                          <option value="">Sin Evento</option>
+                          {eventosDisponibles.map(eventOption => (
+                            <option key={eventOption.id} value={eventOption.id}>{eventOption.titulo}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
 
-                                            <div className="col-12 col-md-6">
-                                                <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Asociar a Evento</label>
-                                                <select
-                                                    className={`form-select ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
-                                                    value={eventoAsociado}
-                                                    onChange={e => setEventoAsociado(e.target.value)}
-                                                    disabled={modoVerDetalles}
-                                                >
-                                                    <option value="">Sin Evento</option>
-                                                    {eventosDisponibles.map(eventOption => (
-                                                        <option key={eventOption.id} value={eventOption.id}>{eventOption.titulo}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div className="modal-footer">
-                                            <button
-                                                type="button"
-                                                className="btn btn-custom-danger"
-                                                onClick={cerrarModal}
-                                            >
-                                                {modoEditar ? 'Cancelar' : 'Cerrar'}
-                                            </button>
-                                            {modoEditar && (
-                                                <button type="submit" className="btn btn-custom-primary">
-                                                    Guardar cambios
-                                                </button>
-                                            )}
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    <div className="modal-footer">
+                      <button
+                        type="button"
+                        className="btn btn-custom-danger"
+                        onClick={cerrarModal}
+                      >
+                        {modoEditar ? 'Cancelar' : 'Cerrar'}
+                      </button>
+                      {modoEditar && (
+                        <button type="submit" className="btn btn-custom-primary">
+                          Guardar cambios
+                        </button>
+                      )}
+                    </div>
+                  </form>
                 </div>
+              </div>
             </div>
+          )}
         </div>
-    );
+      </div>
+    </div>
+  );
 }
 
 export default Tareas;
