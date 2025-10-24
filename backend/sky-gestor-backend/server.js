@@ -1,6 +1,7 @@
 // sky-gestor-backend/server.js
 require('dotenv').config(); // Carga las variables de entorno (.env)
 
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path'); // Para manejar rutas de archivos, si sirves vistas EJS
@@ -28,6 +29,7 @@ app.use(express.urlencoded({ extended: true })); // Para parsear cuerpos de soli
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/tareas', tareasRoutes);
 app.use('/api/eventos', eventosRoutes);
+app.use('/api/eventos', require('./routes/eventosRoutes'));
 
 // Ruta raíz del backend
 app.get('/', (req, res) => {

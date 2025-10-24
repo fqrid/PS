@@ -46,7 +46,7 @@ function Login() {
    // QUITAMOS min-vh-100. El fondo lo maneja el body.
   // pt-5 para asegurar que el contenido no quede debajo de la Navbar fija.
   // Usamos un estilo inline para minHeight para que el d-flex tenga altura para centrar.
-  <div className="d-flex align-items-center justify-content-center pt-5" style={{ minHeight: 'calc(100vh - 56px)' }}>
+  <div className="login-page d-flex align-items-center justify-content-center pt-5" style={{ minHeight: 'calc(100vh - 56px)' }}>
     <div className="container">
       <div className="row justify-content-center">
         <div className="col-md-6 col-lg-4">
