@@ -1,94 +1,41 @@
-const Evento = require('../models/eventos'); 
+const eventosService = require('../services/eventosService');
+const { catchAsync } = require('../utils/errorHandler');
 
 // Crear evento
-exports.crearEvento = async (req, res) => {
-  try {
-    const { titulo, descripcion, fecha, ubicacion, encargado } = req.body; 
-    // Validación de campos obligatorios.
-    if (!titulo || !descripcion || !fecha || !ubicacion || !encargado) { 
-        return res.status(400).json({ error: 'Título, descripción, fecha, ubicación y encargado son campos obligatorios.' }); 
-    }
-
-    // Llama al método crear del modelo Evento
-    const nuevoEvento = await Evento.crear(titulo, descripcion, fecha, ubicacion, encargado); 
-    res.status(201).json(nuevoEvento); 
-  } catch (error) {
-    console.error('Error al crear evento:', error); 
-    res.status(500).json({ error: 'Error interno del servidor al crear el evento.' }); 
-  }
-};
+exports.crearEvento = catchAsync(async (req, res) => {
+  const nuevoEvento = await eventosService.crear(req.body);
+  res.status(201).json(nuevoEvento);
+});
 
 // Obtener todos los eventos
-exports.obtenerEventos = async (req, res) => {
-  try {
-    const eventos = await Evento.obtenerTodos(); 
-    res.json(eventos); 
-  } catch (error) {
-    console.error('Error al obtener eventos:', error); 
-    res.status(500).json({ error: 'Error interno del servidor al obtener los eventos.' }); 
-  }
-};
+exports.obtenerEventos = catchAsync(async (req, res) => {
+  const eventos = await eventosService.obtenerTodos();
+  res.json(eventos);
+});
 
 // Obtener un evento por ID
-exports.obtenerEventoPorId = async (req, res) => {
-  try {
-    const { id } = req.params; 
-    const evento = await Evento.obtenerPorId(id); 
-    if (!evento) {
-      return res.status(404).json({ error: 'Evento no encontrado.' }); 
-    }
-    res.json(evento); 
-  } catch (error) {
-    console.error('Error al obtener evento por ID:', error); 
-    res.status(500).json({ error: 'Error interno del servidor al obtener el evento.' }); 
-  }
-};
+exports.obtenerEventoPorId = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const evento = await eventosService.obtenerPorId(id);
+  res.json(evento);
+});
 
 // Actualizar evento
-exports.actualizarEvento = async (req, res) => {
-  try {
-    const { id } = req.params; 
-    const { titulo, descripcion, fecha, ubicacion, encargado } = req.body; 
-
-    // Validación de campos obligatorios
-    if (!titulo || !descripcion || !fecha || !ubicacion || !encargado) { 
-        return res.status(400).json({ error: 'Título, descripción, fecha, ubicación y encargado son campos obligatorios.' }); 
-    }
-
-    const eventoActualizado = await Evento.actualizar(id, titulo, descripcion, fecha, ubicacion, encargado); 
-    if (!eventoActualizado) { // Si el modelo devuelve null porque no encontró el ID
-        return res.status(404).json({ error: 'Evento no encontrado para actualizar.' });
-    }
-    res.json(eventoActualizado); 
-  } catch (error) {
-    console.error('Error al actualizar evento:', error); 
-    res.status(500).json({ error: 'Error interno del servidor al actualizar el evento.' }); 
-  }
-};
+exports.actualizarEvento = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const eventoActualizado = await eventosService.actualizar(id, req.body);
+  res.json(eventoActualizado);
+});
 
 // Eliminar evento
-exports.eliminarEvento = async (req, res) => {
-  try {
-    const { id } = req.params; 
-
-    const resultado = await Evento.eliminar(id); 
-    if (!resultado.deleted) { // Usando la propiedad 'deleted' que añadimos al modelo
-        return res.status(404).json({ error: 'Evento no encontrado para eliminar.' });
-    }
-    res.json({ message: resultado.message }); 
-  } catch (error) {
-    console.error('Error al eliminar evento:', error);
-    res.status(500).json({ error: 'Error interno del servidor al eliminar el evento.' }); 
-  }
-};
+exports.eliminarEvento = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const resultado = await eventosService.eliminar(id);
+  res.json({ message: resultado.message });
+});
 
 // Obtener eventos en las próximas 24 horas
-exports.obtenerEventosProximas24h = async (req, res) => {
-  try {
-    const eventos = await Evento.obtenerProximas24Horas();
-    res.json(eventos);
-  } catch (error) {
-    console.error('Error al obtener eventos de las próximas 24 horas:', error);
-    res.status(500).json({ error: 'Error interno del servidor al obtener eventos próximos.' });
-  }
-};
+exports.obtenerEventosProximas24h = catchAsync(async (req, res) => {
+  const eventos = await eventosService.obtenerProximas24h();
+  res.json(eventos);
+});
