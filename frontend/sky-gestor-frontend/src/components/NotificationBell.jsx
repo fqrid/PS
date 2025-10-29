@@ -138,7 +138,7 @@ const NotificationBell = () => {
             {!loading && !error && eventos.length > 0 && (
               <div className="notification-list">
                 {eventos.map((evento) => (
-                  <div key={evento.id} className="notification-item p-3 border-bottom">
+                  <div key={evento.id_evento} className="notification-item p-3 border-bottom">
                     <div className="d-flex justify-content-between align-items-start">
                       <div className="flex-grow-1">
                         <h6 className="mb-1 text-truncate" title={evento.titulo}>

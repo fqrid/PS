@@ -621,7 +621,7 @@ function Eventos() {
               <tbody>
                 {eventosFiltrados.length > 0 ? (
                   eventosFiltrados.map((evento) => (
-                    <tr key={evento.id}>
+                    <tr key={evento.id_evento}>
                       <td>{evento.titulo}</td>
                       <td className="truncate-text col-hide-mobile">{evento.descripcion}</td>
                       <td className="truncate-text col-hide-mobile">{evento.ubicacion}</td>
@@ -639,9 +639,9 @@ function Eventos() {
                           >Editar</button>
                           <button
                             className="btn btn-custom-danger btn-sm mb-1"
-                            onClick={() => eliminarEvento(evento.id)}
+                            onClick={() => eliminarEvento(evento.id_evento)}
                           >Eliminar</button>
-                          <Link to={`/eventos/${evento.id}`} className="btn btn-info btn-sm">Ver Tareas</Link>
+                          <Link to={`/eventos/${evento.id_evento}`} className="btn btn-info btn-sm">Ver Tareas</Link>
                         </div>
                       </td>
                     </tr>

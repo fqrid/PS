@@ -99,7 +99,7 @@ function EventoDetalles() {
               </thead>
               <tbody>
                 {tareasAsociadas.map(tarea => (
-                  <tr key={tarea.id}>
+                  <tr key={tarea.id_tarea}>
                     <td>{tarea.titulo}</td>
                     <td>{tarea.descripcion}</td>
                     <td>{tarea.estado}</td>

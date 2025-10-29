@@ -12,8 +12,8 @@ function Tareas() {
   const [descripcion, setDescripcion] = useState('');
   const [estado, setEstado] = useState('pendiente');
   const [fecha, setFecha] = useState('');
-  const [usuarioAsignado, setUsuarioAsignado] = useState('');
-  const [eventoAsociado, setEventoAsociado] = useState('');
+  const [idUsuarioAsignado, setIdUsuarioAsignado] = useState(''); // Cambiado nombre
+  const [idEventoAsociado, setIdEventoAsociado] = useState(''); // Cambiado nombre
   const [modoEditar, setModoEditar] = useState(false);
   const [modoVerDetalles, setModoVerDetalles] = useState(false);
   const [tareaActual, setTareaActual] = useState(null);
@@ -121,8 +121,8 @@ function Tareas() {
             (tarea.titulo && tarea.titulo.toLowerCase().includes(termino)) ||
             (tarea.descripcion && tarea.descripcion.toLowerCase().includes(termino)) ||
             (tarea.estado && tarea.estado.toLowerCase().includes(termino)) ||
-            (tarea.usuarioAsignadoNombre && tarea.usuarioAsignadoNombre.toLowerCase().includes(termino)) ||
-            (tarea.eventoAsociadoTitulo && tarea.eventoAsociadoTitulo.toLowerCase().includes(termino))
+            (tarea.usuario_asignado_nombre && tarea.usuario_asignado_nombre.toLowerCase().includes(termino)) || // Cambiado
+            (tarea.evento_asociado_titulo && tarea.evento_asociado_titulo.toLowerCase().includes(termino)) // Cambiado
           );
           break;
         
@@ -146,13 +146,13 @@ function Tareas() {
         
         case 'usuario':
           tareasFiltradas = tareasFiltradas.filter(tarea =>
-            tarea.usuarioAsignadoNombre && tarea.usuarioAsignadoNombre.toLowerCase().includes(termino)
+            tarea.usuario_asignado_nombre && tarea.usuario_asignado_nombre.toLowerCase().includes(termino) // Cambiado
           );
           break;
         
         case 'evento':
           tareasFiltradas = tareasFiltradas.filter(tarea =>
-            tarea.eventoAsociadoTitulo && tarea.eventoAsociadoTitulo.toLowerCase().includes(termino)
+            tarea.evento_asociado_titulo && tarea.evento_asociado_titulo.toLowerCase().includes(termino) // Cambiado
           );
           break;
         
@@ -242,8 +242,8 @@ function Tareas() {
           descripcion,
           estado,
           fecha,
-          usuarioAsignadoId: usuarioAsignado === '' ? null : parseInt(usuarioAsignado),
-          eventoAsociadoId: eventoAsociado === '' ? null : parseInt(eventoAsociado)
+          id_usuario_asignado: idUsuarioAsignado === '' ? null : parseInt(idUsuarioAsignado), // Cambiado
+          id_evento_asociado: idEventoAsociado === '' ? null : parseInt(idEventoAsociado) // Cambiado
         })
       });
       if (res.ok) {
@@ -253,8 +253,8 @@ function Tareas() {
         setDescripcion('');
         setEstado('pendiente');
         setFecha('');
-        setUsuarioAsignado('');
-        setEventoAsociado('');
+        setIdUsuarioAsignado(''); // Cambiado
+        setIdEventoAsociado(''); // Cambiado
         setErrores({});
       } else {
         const errorData = await res.json();
@@ -301,8 +301,8 @@ function Tareas() {
     setDescripcion(tarea.descripcion);
     setEstado(tarea.estado);
     setFecha(tarea.fecha ? tarea.fecha.split('T')[0] : '');
-    setUsuarioAsignado(tarea.usuarioAsignadoId || '');
-    setEventoAsociado(tarea.eventoAsociadoId || '');
+    setIdUsuarioAsignado(tarea.id_usuario_asignado || ''); // Cambiado
+    setIdEventoAsociado(tarea.id_evento_asociado || ''); // Cambiado
     setModoEditar(true);
     setModoVerDetalles(false);
   };
@@ -313,8 +313,8 @@ function Tareas() {
     setDescripcion(tarea.descripcion);
     setEstado(tarea.estado);
     setFecha(tarea.fecha ? tarea.fecha.split('T')[0] : '');
-    setUsuarioAsignado(tarea.usuarioAsignadoId || '');
-    setEventoAsociado(tarea.eventoAsociadoId || '');
+    setIdUsuarioAsignado(tarea.id_usuario_asignado || ''); // Cambiado
+    setIdEventoAsociado(tarea.id_evento_asociado || ''); // Cambiado
     setModoVerDetalles(true);
     setModoEditar(false);
   };
@@ -327,8 +327,8 @@ function Tareas() {
     setDescripcion('');
     setEstado('pendiente');
     setFecha('');
-    setUsuarioAsignado('');
-    setEventoAsociado('');
+    setIdUsuarioAsignado(''); // Cambiado
+    setIdEventoAsociado(''); // Cambiado
     setErrores({});
   };
 
@@ -340,7 +340,7 @@ function Tareas() {
 
     try {
       const token = localStorage.getItem('usuarioToken');
-      const res = await fetch(`http://localhost:3001/api/tareas/${tareaActual.id}`, {
+      const res = await fetch(`http://localhost:3001/api/tareas/${tareaActual.id_tarea}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -351,8 +351,8 @@ function Tareas() {
           descripcion,
           estado,
           fecha,
-          usuarioAsignadoId: usuarioAsignado === '' ? null : parseInt(usuarioAsignado),
-          eventoAsociadoId: eventoAsociado === '' ? null : parseInt(eventoAsociado)
+          id_usuario_asignado: idUsuarioAsignado === '' ? null : parseInt(idUsuarioAsignado), // Cambiado
+          id_evento_asociado: idEventoAsociado === '' ? null : parseInt(idEventoAsociado) // Cambiado
         })
       });
       if (res.ok) {
@@ -519,8 +519,8 @@ function Tareas() {
               <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Asignar a</label>
               <select
                 className={`form-select ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
-                value={usuarioAsignado}
-                onChange={e => setUsuarioAsignado(e.target.value)}
+                value={idUsuarioAsignado} // Cambiado
+                onChange={e => setIdUsuarioAsignado(e.target.value)} // Cambiado
               >
                 <option value="">No Asignado</option>
                 {usuariosDisponibles.map(userOption => (
@@ -533,8 +533,8 @@ function Tareas() {
               <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Asociar a Evento</label>
               <select
                 className={`form-select ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
-                value={eventoAsociado}
-                onChange={e => setEventoAsociado(e.target.value)}
+                value={idEventoAsociado} // Cambiado
+                onChange={e => setIdEventoAsociado(e.target.value)} // Cambiado
               >
                 <option value="">Sin Evento</option>
                 {eventosDisponibles.map(eventOption => (
@@ -719,7 +719,7 @@ function Tareas() {
               <tbody>
                 {tareasFiltradas.length > 0 ? (
                   tareasFiltradas.map((tarea) => (
-                    <tr key={tarea.id}>
+                    <tr key={tarea.id_tarea}>
                       <td>{tarea.titulo}</td>
                       <td className="d-none d-sm-table-cell truncate-text">{tarea.descripcion}</td>
                       <td>
@@ -728,8 +728,8 @@ function Tareas() {
                         </span>
                       </td>
                       <td>{tarea.fecha ? tarea.fecha.split('T')[0] : ''}</td>
-                      <td className="d-none d-md-table-cell">{tarea.usuarioAsignadoNombre || 'N/A'}</td>
-                      <td className="d-none d-md-table-cell">{tarea.eventoAsociadoTitulo || 'N/A'}</td>
+                      <td className="d-none d-md-table-cell">{tarea.usuario_asignado_nombre || 'N/A'}</td> {/* Cambiado */}
+                      <td className="d-none d-md-table-cell">{tarea.evento_asociado_titulo || 'N/A'}</td> {/* Cambiado */}
                       <td>
                         <div className="d-flex flex-wrap">
                           <button
@@ -742,7 +742,7 @@ function Tareas() {
                           >Editar</button>
                           <button
                             className="btn btn-custom-danger btn-sm mb-1"
-                            onClick={() => eliminarTarea(tarea.id)}
+                            onClick={() => eliminarTarea(tarea.id_tarea)}
                           >Eliminar</button>
                         </div>
                       </td>
@@ -837,8 +837,8 @@ function Tareas() {
                         <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Asignar a</label>
                         <select
                           className={`form-select ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
-                          value={usuarioAsignado}
-                          onChange={e => setUsuarioAsignado(e.target.value)}
+                          value={idUsuarioAsignado} // Cambiado
+                          onChange={e => setIdUsuarioAsignado(e.target.value)} // Cambiado
                           disabled={modoVerDetalles}
                         >
                           <option value="">No Asignado</option>
@@ -852,8 +852,8 @@ function Tareas() {
                         <label className={`form-label ${darkMode ? 'text-white' : 'text-dark'}`}>Asociar a Evento</label>
                         <select
                           className={`form-select ${darkMode ? 'bg-secondary text-white border-secondary' : ''}`}
-                          value={eventoAsociado}
-                          onChange={e => setEventoAsociado(e.target.value)}
+                          value={idEventoAsociado} // Cambiado
+                          onChange={e => setIdEventoAsociado(e.target.value)} // Cambiado
                           disabled={modoVerDetalles}
                         >
                           <option value="">Sin Evento</option>

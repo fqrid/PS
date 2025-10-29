@@ -70,7 +70,7 @@ function Usuarios() {
     switch (filtroSeleccionado) {
       case 'todo':
         usuariosFiltrados = usuarios.filter(usuario =>
-          (usuario.id && usuario.id.toString().includes(termino)) ||
+          (usuario.id_usuario && usuario.id_usuario.toString().includes(termino)) ||
           (usuario.nombre && usuario.nombre.toLowerCase().includes(termino)) ||
           (usuario.correo && usuario.correo.toLowerCase().includes(termino))
         );
@@ -78,7 +78,7 @@ function Usuarios() {
       
       case 'id':
         usuariosFiltrados = usuarios.filter(usuario =>
-          usuario.id && usuario.id.toString().includes(termino)
+          usuario.id_usuario && usuario.id_usuario.toString().includes(termino)
         );
         break;
       
@@ -342,9 +342,9 @@ function Usuarios() {
               <tbody>
                 {usuariosFiltrados.length > 0 ? (
                   usuariosFiltrados.map((usuario) => (
-                    <tr key={usuario.id}>
+                    <tr key={usuario.id_usuario}>
                       <td>
-                        <span className="badge bg-secondary">{usuario.id}</span>
+                        <span className="badge bg-secondary">{usuario.id_usuario}</span>
                       </td>
                       <td>
                         <div className="d-flex align-items-center">

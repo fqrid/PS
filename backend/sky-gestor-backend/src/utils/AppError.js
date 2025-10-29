@@ -1,4 +1,5 @@
-class AppError extends Error {
+// src/utils/AppError.js
+export class AppError extends Error {
   constructor(message, statusCode) {
     super(message);
 
@@ -12,12 +13,12 @@ class AppError extends Error {
 }
 
 // Función para crear errores comunes
-const createError = (message, statusCode) => {
+export const createError = (message, statusCode) => {
   return new AppError(message, statusCode);
 };
 
 // Errores predefinidos comunes
-const commonErrors = {
+export const commonErrors = {
   notFound: (resource = 'Recurso') => createError(`${resource} no encontrado`, 404),
   badRequest: (message = 'Solicitud inválida') => createError(message, 400),
   unauthorized: (message = 'No autorizado') => createError(message, 401),
@@ -25,10 +26,4 @@ const commonErrors = {
   conflict: (message = 'Conflicto de recursos') => createError(message, 409),
   internalError: (message = 'Error interno del servidor') => createError(message, 500),
   validationError: (message = 'Error de validación') => createError(message, 422)
-};
-
-module.exports = {
-  AppError,
-  createError,
-  commonErrors
 };
