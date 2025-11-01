@@ -4,6 +4,31 @@ import { Evento } from '../models/eventos.model.js';
 import { AppError } from '../utils/AppError.js';
 import { Between } from 'typeorm';
 
+const parseFechaInput = (fechaInput) => {
+  if (!fechaInput) {
+    return null;
+  }
+
+  if (fechaInput instanceof Date) {
+    return Number.isNaN(fechaInput.getTime()) ? null : fechaInput;
+  }
+
+  if (typeof fechaInput === 'string') {
+    const dateOnlyRegex = /^\d{4}-\d{2}-\d{2}$/;
+    const trimmed = fechaInput.trim();
+
+    if (dateOnlyRegex.test(trimmed)) {
+      return new Date(`${trimmed}T00:00:00`);
+    }
+
+    const parsed = new Date(trimmed);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  const parsed = new Date(fechaInput);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
 class EventosService {
   constructor() {
     this.eventoRepository = AppDataSource.getRepository(Evento);
@@ -18,7 +43,7 @@ class EventosService {
       id_evento: evento.id_evento,
       titulo: evento.titulo,
       descripcion: evento.descripcion,
-      fecha: evento.fecha,
+      fecha: evento.fecha?.toISOString(),
       ubicacion: evento.ubicacion,
       encargado: evento.encargado,
       creado_en: evento.creado_en,
@@ -39,7 +64,7 @@ class EventosService {
       id_evento: evento.id_evento,
       titulo: evento.titulo,
       descripcion: evento.descripcion,
-      fecha: evento.fecha,
+      fecha: evento.fecha?.toISOString(),
       ubicacion: evento.ubicacion,
       encargado: evento.encargado,
       creado_en: evento.creado_en,
@@ -55,10 +80,16 @@ class EventosService {
       throw new AppError('Título, descripción, fecha, ubicación y encargado son campos obligatorios', 400);
     }
 
+    const fechaNormalizada = parseFechaInput(fecha);
+
+    if (!fechaNormalizada) {
+      throw new AppError('Fecha inválida', 400);
+    }
+
     const evento = this.eventoRepository.create({
       titulo,
       descripcion,
-      fecha: new Date(fecha),
+      fecha: fechaNormalizada,
       ubicacion,
       encargado
     });
@@ -69,7 +100,7 @@ class EventosService {
       id_evento: evento.id_evento,
       titulo: evento.titulo,
       descripcion: evento.descripcion,
-      fecha: evento.fecha,
+      fecha: evento.fecha?.toISOString(),
       ubicacion: evento.ubicacion,
       encargado: evento.encargado,
       creado_en: evento.creado_en
@@ -84,6 +115,12 @@ class EventosService {
       throw new AppError('Título, descripción, fecha, ubicación y encargado son campos obligatorios', 400);
     }
 
+    const fechaNormalizada = parseFechaInput(fecha);
+
+    if (!fechaNormalizada) {
+      throw new AppError('Fecha inválida', 400);
+    }
+
     const evento = await this.eventoRepository.findOne({ 
       where: { id_evento } 
     });
@@ -94,7 +131,7 @@ class EventosService {
 
     evento.titulo = titulo;
     evento.descripcion = descripcion;
-    evento.fecha = new Date(fecha);
+    evento.fecha = fechaNormalizada;
     evento.ubicacion = ubicacion;
     evento.encargado = encargado;
 
@@ -104,7 +141,7 @@ class EventosService {
       id_evento: evento.id_evento,
       titulo: evento.titulo,
       descripcion: evento.descripcion,
-      fecha: evento.fecha,
+      fecha: evento.fecha?.toISOString(),
       ubicacion: evento.ubicacion,
       encargado: evento.encargado,
       actualizado_en: evento.actualizado_en
@@ -131,11 +168,12 @@ class EventosService {
 
   async obtenerProximas24h() {
     const ahora = new Date();
+    const inicioDelDia = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
     const en24Horas = new Date(ahora.getTime() + 24 * 60 * 60 * 1000);
 
     const eventos = await this.eventoRepository.find({
       where: {
-        fecha: Between(ahora, en24Horas)
+        fecha: Between(inicioDelDia, en24Horas)
       },
       order: { fecha: 'ASC' }
     });
@@ -144,7 +182,7 @@ class EventosService {
       id_evento: evento.id_evento,
       titulo: evento.titulo,
       descripcion: evento.descripcion,
-      fecha: evento.fecha,
+      fecha: evento.fecha?.toISOString(),
       ubicacion: evento.ubicacion,
       encargado: evento.encargado
     }));

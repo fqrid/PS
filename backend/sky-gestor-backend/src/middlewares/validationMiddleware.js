@@ -32,11 +32,40 @@ const validatePassword = (req, res, next) => {
 };
 
 // Middleware para validar ID de parámetros
+// Compatible con diferentes nombres de parámetro (id, id_evento, eventoId, usuarioId, etc.)
+// y acepta IDs numéricos positivos o UUIDs.
 const validateId = (req, res, next) => {
-  const { id } = req.params;
-  if (!id || !Number.isInteger(Number(id)) || Number(id) <= 0) {
+  // Intentar obtener 'id' directamente
+  let id = req.params.id;
+
+  // Si no existe, buscar una key en params que parezca un id (contenga 'id' o empiece con 'id_')
+  if (!id) {
+    const candidateKey = Object.keys(req.params).find((k) => {
+      const key = k.toLowerCase();
+      return key === 'id' || key.startsWith('id_') || key.endsWith('id') || key.includes('id');
+    });
+
+    if (candidateKey) {
+      id = req.params[candidateKey];
+      // Normalizar: dejar siempre disponible en req.params.id para downstream
+      req.params.id = id;
+    }
+  }
+
+  const isPositiveInteger = (val) => {
+    const n = Number(val);
+    return Number.isInteger(n) && n > 0;
+  };
+
+  const isUUID = (val) => {
+    if (typeof val !== 'string') return false;
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+  };
+
+  if (!id || !(isPositiveInteger(id) || isUUID(id))) {
     return next(new AppError('ID inválido', 400));
   }
+
   next();
 };
 

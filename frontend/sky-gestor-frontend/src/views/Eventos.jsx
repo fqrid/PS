@@ -222,7 +222,7 @@ function Eventos() {
   };
 
   const eliminarEvento = async (id) => {
-    const evento = eventos.find(e => e.id === id);
+    const evento = eventos.find(e => e.id_evento === id);
     const confirmMessage = `¿Estás seguro de que quieres eliminar el evento "${evento?.titulo}"?\n\nEsta acción no se puede deshacer.`;
     
     if (!window.confirm(confirmMessage)) return;
@@ -290,7 +290,7 @@ function Eventos() {
 
     try {
       const token = localStorage.getItem('usuarioToken');
-      const res = await fetch(`http://localhost:3001/api/eventos/${eventoActual.id}`, {
+      const res = await fetch(`http://localhost:3001/api/eventos/${eventoActual.id_evento}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
