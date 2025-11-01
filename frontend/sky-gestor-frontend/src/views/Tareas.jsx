@@ -728,8 +728,8 @@ function Tareas() {
                         </span>
                       </td>
                       <td>{tarea.fecha ? tarea.fecha.split('T')[0] : ''}</td>
-                      <td className="d-none d-md-table-cell">{tarea.usuario_asignado_nombre || 'N/A'}</td> {/* Cambiado */}
-                      <td className="d-none d-md-table-cell">{tarea.evento_asociado_titulo || 'N/A'}</td> {/* Cambiado */}
+                      <td className="d-none d-md-table-cell">{tarea.usuario_asignado_nombre || 'N/A'}</td> 
+                      <td className="d-none d-md-table-cell">{tarea.evento_asociado_titulo || 'N/A'}</td>
                       <td>
                         <div className="d-flex flex-wrap">
                           <button

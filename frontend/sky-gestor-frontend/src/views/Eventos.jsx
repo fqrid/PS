@@ -290,7 +290,7 @@ function Eventos() {
 
     try {
       const token = localStorage.getItem('usuarioToken');
-      const res = await fetch(`http://localhost:3001/api/eventos/${eventoActual.id}`, {
+      const res = await fetch(`http://localhost:3001/api/eventos/${eventoActual.id_evento}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
