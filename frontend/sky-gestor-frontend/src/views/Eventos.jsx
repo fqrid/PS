@@ -2,11 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/estilosEventos.css';
 import { useAuth } from '../context/AuthContext';
-<<<<<<< HEAD
-import { useTheme } from '../context/ThemeContext.js'; // <-- Importa useTheme
-=======
 import { useTheme } from '../context/ThemeContext.js';
->>>>>>> 0db53bfea62aa2d1f4698c43c1f012c8b1807fba
 
 function Eventos() {
   const { user } = useAuth();
@@ -75,8 +71,6 @@ function Eventos() {
     }
   }, [user, fetchEventos]);
 
-<<<<<<< HEAD
-=======
   // Aplicar búsqueda y filtros
   const aplicarBusquedaYFiltros = useCallback(() => {
     if (!terminoBusqueda.trim() && !fechaFiltro) {
@@ -182,7 +176,6 @@ function Eventos() {
   const hayFiltrosActivos = () => {
     return terminoBusqueda || fechaFiltro;
   };
->>>>>>> 0db53bfea62aa2d1f4698c43c1f012c8b1807fba
 
   const validarFormulario = () => {
     const erroresTemp = {};
@@ -207,11 +200,7 @@ function Eventos() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-<<<<<<< HEAD
-        body: JSON.stringify({ titulo, descripcion, fecha })
-=======
         body: JSON.stringify({ titulo, descripcion, ubicacion, encargado, fecha })
->>>>>>> 0db53bfea62aa2d1f4698c43c1f012c8b1807fba
       });
       if (res.ok) {
         showNotification('Evento agregado con éxito');
@@ -310,11 +299,8 @@ function Eventos() {
         body: JSON.stringify({
           titulo,
           descripcion,
-<<<<<<< HEAD
-=======
           ubicacion,
           encargado,
->>>>>>> 0db53bfea62aa2d1f4698c43c1f012c8b1807fba
           fecha
         })
       });
@@ -633,29 +619,6 @@ function Eventos() {
                 </tr>
               </thead>
               <tbody>
-<<<<<<< HEAD
-                {eventos.map((evento) => (
-                  <tr key={evento.id}>
-                    <td>{evento.titulo}</td>
-                    <td className="truncate-text col-hide-mobile">{evento.descripcion}</td>
-                    <td>{evento.fecha ? evento.fecha.split('T')[0] : ''}</td>
-                    <td>
-                      <div className="d-flex flex-wrap">
-                        <button
-                          className="btn btn-custom-action btn-sm me-1 mb-1"
-                          onClick={() => verDetalles(evento)}
-                        >Ver Detalles</button>
-                        <button
-                          className="btn btn-custom-primary btn-sm me-1 mb-1"
-                          onClick={() => iniciarEdicion(evento)}
-                        >Editar</button>
-                        <button
-                          className="btn btn-custom-danger btn-sm mb-1"
-                          onClick={() => eliminarEvento(evento.id)}
-                        >Eliminar</button>
-                        <Link to={`/eventos/${evento.id}`} className="btn btn-info btn-sm">Ver Tareas</Link>
-                      </div>
-=======
                 {eventosFiltrados.length > 0 ? (
                   eventosFiltrados.map((evento) => (
                     <tr key={evento.id_evento}>
@@ -690,7 +653,6 @@ function Eventos() {
                       {hayFiltrosActivos() 
                         ? 'No se encontraron eventos que coincidan con los filtros aplicados.' 
                         : 'No hay eventos registrados.'}
->>>>>>> 0db53bfea62aa2d1f4698c43c1f012c8b1807fba
                     </td>
                   </tr>
                 )}
@@ -772,10 +734,6 @@ function Eventos() {
                         />
                         {errores.fecha && modoEditar && <div className="invalid-feedback">{errores.fecha}</div>}
                       </div>
-<<<<<<< HEAD
-
-=======
->>>>>>> 0db53bfea62aa2d1f4698c43c1f012c8b1807fba
                     </div>
                     <div className="modal-footer">
                       <button type="button" className="btn btn-custom-danger" onClick={cerrarModal}>
