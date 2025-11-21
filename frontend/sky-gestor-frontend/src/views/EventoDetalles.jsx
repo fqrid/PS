@@ -1,7 +1,6 @@
 // sky-gestor-frontend/src/views/EventoDetalles.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import MapaEvento from '../components/MapaEvento';
 import { useAuth } from '../context/AuthContext';
 import '../styles/estilosEventos.css'; // O tu archivo CSS
 
@@ -82,12 +81,6 @@ function EventoDetalles() {
             <h5 className="card-title">{evento.titulo}</h5>
             <p className="card-text"><strong>Descripción:</strong> {evento.descripcion}</p>
             <p className="card-text"><strong>Fecha:</strong> {new Date(evento.fecha).toLocaleDateString()}</p>
-            <p className="card-text"><strong>Ubicación:</strong> Latitud: {evento.ubicacion.lat}, Longitud: {evento.ubicacion.lng}</p>
-            {evento.ubicacion && (
-              <div style={{ height: '300px', width: '100%' }}>
-                <MapaEvento lat={evento.ubicacion.lat} lng={evento.ubicacion.lng} />
-              </div>
-            )}
           </div>
         </div>
 
