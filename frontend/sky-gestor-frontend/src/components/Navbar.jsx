@@ -3,6 +3,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
 import { useTheme } from '../context/ThemeContext.js';
+import NotificationBell from './NotificationBell.jsx';
 
 function Navbar() {
   const { user, logout } = useAuth();
@@ -43,6 +44,9 @@ function Navbar() {
               </li>
               <li className="nav-item">
                 <Link to="/eventos" className="nav-link">Eventos</Link>
+              </li>
+              <li className="nav-item d-flex align-items-center">
+                <NotificationBell />
               </li>
               <li className="nav-item">
                 <button

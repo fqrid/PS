@@ -1,16 +1,15 @@
-// sky-gestor-frontend/src/views/EventoDetalles.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import '../styles/estilosEventos.css'; // O tu archivo CSS
+import '../styles/estilosEventos.css';
 
 function EventoDetalles() {
-  const { id } = useParams(); // Obtiene el ID del evento de la URL
+  const { id } = useParams();
   const [evento, setEvento] = useState(null);
   const [tareasAsociadas, setTareasAsociadas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { user } = useAuth(); // Para verificar si está autenticado
+  const { user } = useAuth();
 
   useEffect(() => {
     async function fetchEventoDetalles() {
@@ -21,7 +20,6 @@ function EventoDetalles() {
       }
       try {
         const token = localStorage.getItem('usuarioToken');
-        // Petición para obtener los detalles del evento
         const eventRes = await fetch(`http://localhost:3001/api/eventos/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`
@@ -31,7 +29,6 @@ function EventoDetalles() {
           const eventData = await eventRes.json();
           setEvento(eventData);
 
-          // Petición para obtener las tareas asociadas a este evento
           const tasksRes = await fetch(`http://localhost:3001/api/tareas/event/${id}`, {
             headers: {
               Authorization: `Bearer ${token}`
@@ -58,7 +55,7 @@ function EventoDetalles() {
     }
 
     fetchEventoDetalles();
-  }, [id, user]); // Dependencias del useEffect
+  }, [id, user]);
 
   if (loading) {
     return <div className="text-center mt-5">Cargando detalles del evento...</div>;
@@ -74,12 +71,14 @@ function EventoDetalles() {
 
   return (
     <div className="fondo-personalizado" style={{ backgroundImage: 'url("/imagen/IMG_5994.JPEG")' }}>
-      <div className="container-main mt-5 pt-5"> {/* Añadido pt-5 para espacio con el navbar fijo */}
+      <div className="container-main mt-5 pt-5">
         <h2 className="mb-4 text-center">Detalles del Evento: {evento.titulo}</h2>
         <div className="card mb-4">
           <div className="card-body">
             <h5 className="card-title">{evento.titulo}</h5>
             <p className="card-text"><strong>Descripción:</strong> {evento.descripcion}</p>
+            <p className="card-text"><strong>Ubicación:</strong> {evento.ubicacion}</p>
+            <p className="card-text"><strong>Encargado:</strong> {evento.encargado}</p>
             <p className="card-text"><strong>Fecha:</strong> {new Date(evento.fecha).toLocaleDateString()}</p>
           </div>
         </div>
@@ -99,7 +98,7 @@ function EventoDetalles() {
               </thead>
               <tbody>
                 {tareasAsociadas.map(tarea => (
-                  <tr key={tarea.id}>
+                  <tr key={tarea.id_tarea}>
                     <td>{tarea.titulo}</td>
                     <td>{tarea.descripcion}</td>
                     <td>{tarea.estado}</td>

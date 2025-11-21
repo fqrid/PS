@@ -1,3 +1,5 @@
+//modificacion1
+//modificacio2
 // sky-gestor-frontend/src/views/Registro.jsx
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -5,7 +7,6 @@ import { useNavigate, Link } from 'react-router-dom';
 
 
 import { useTheme } from '../context/ThemeContext.js';
-
 function Registro() {
   const [nombre, setNombre] = useState('');
   const [correo, setCorreo] = useState('');
@@ -18,6 +19,7 @@ function Registro() {
   const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
+
 
     try {
       const response = await fetch('http://localhost:3001/api/usuarios/register', {

@@ -1,6 +1,7 @@
 // src/context/AuthContext.js
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { jwtDecode } from 'jwt-decode';
+import authService from '../services/authService';
 
 const AuthContext = createContext();
 
@@ -19,10 +20,16 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = (token) => {
-    localStorage.setItem('usuarioToken', token);
-    const decoded = jwtDecode(token);
-    setUser(decoded);
+  const login = async (correo, contrasena) => {
+    try {
+      const response = await authService.login(correo, contrasena);
+      localStorage.setItem('usuarioToken', response.token);
+      const decoded = jwtDecode(response.token);
+      setUser(decoded);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   };
 
   const logout = () => {
