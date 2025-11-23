@@ -14,7 +14,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_DATABASE || 'mi_proyecto',
   synchronize: process.env.NODE_ENV !== 'production',
   logging: process.env.NODE_ENV === 'development',
-  entities: [join(__dirname, '../models/*.model.js')], // 🌟 apuntando a *.model.js
+  entities: [join(__dirname, '../models/*.model.js')], 
   migrations: [join(__dirname, '../migrations/*.js')],
   charset: 'utf8mb4',
   timezone: 'Z',

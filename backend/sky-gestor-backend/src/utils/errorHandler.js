@@ -1,5 +1,5 @@
-// src/utils/errorHandler.js
 import { AppError } from './AppError.js';
+import logger from "./logger.js"; // <- IMPORTANTE
 
 // Función para manejar errores asíncronos
 export const catchAsync = (fn) => {
@@ -24,11 +24,15 @@ export const handleDatabaseError = (err) => {
 
 // Middleware global para manejo de errores
 export const globalErrorHandler = (err, req, res, next) => {
-  let error = { ...err };
-  error.message = err.message;
 
-  // Log del error para debugging
-  console.error('Error:', err);
+  // 🔥 Añadir logs con Winston
+  logger.error({
+    message: err.message,
+    statusCode: err.statusCode || 500,
+    route: req.originalUrl,
+    method: req.method,
+    stack: err.stack,
+  });
 
   // Si ya es un AppError, úsalo directamente
   if (err instanceof AppError) {
@@ -39,48 +43,47 @@ export const globalErrorHandler = (err, req, res, next) => {
     });
   }
 
-  // Error de validación de Mongoose (si usaras MongoDB)
+  let error = { ...err };
+  error.message = err.message;
+
+  // Mongoose ValidationError
   if (err.name === 'ValidationError') {
     const message = Object.values(err.errors).map(val => val.message).join(', ');
     error = new AppError(message, 400);
   }
 
-  // Error de duplicado de Mongoose
+  // Mongo duplicado
   if (err.code === 11000) {
-    const message = 'Recurso duplicado';
-    error = new AppError(message, 400);
+    error = new AppError('Recurso duplicado', 400);
   }
 
-  // Error de cast de Mongoose
+  // ID inválido
   if (err.name === 'CastError') {
-    const message = 'ID inválido';
-    error = new AppError(message, 400);
+    error = new AppError('ID inválido', 400);
   }
 
-  // Error de JWT
+  // JWT inválido
   if (err.name === 'JsonWebTokenError') {
-    const message = 'Token inválido';
-    error = new AppError(message, 401);
+    error = new AppError('Token inválido', 401);
   }
 
-  // Error de JWT expirado
+  // JWT expirado
   if (err.name === 'TokenExpiredError') {
-    const message = 'Token expirado';
-    error = new AppError(message, 401);
+    error = new AppError('Token expirado', 401);
   }
 
-  // Manejar errores de TypeORM/MySQL
+  // MySQL / TypeORM errores
   if (err.code && err.code.startsWith('ER_')) {
     error = handleDatabaseError(err);
   }
 
-  // Respuesta de error final
+  // Respuesta final
   res.status(error.statusCode || 500).json({
     status: error.status || 'error',
     message: error.message || 'Error interno del servidor',
-    ...(process.env.NODE_ENV === 'development' && { 
+    ...(process.env.NODE_ENV === 'development' && {
       stack: error.stack,
-      details: err 
+      details: err
     })
   });
 };

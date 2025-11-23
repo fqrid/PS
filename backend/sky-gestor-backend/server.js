@@ -4,6 +4,7 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path'; // Para manejar rutas de archivos, si sirves vistas EJS
 import { fileURLToPath } from 'url';
+import logger from "./src/utils/logger.js";//AÑADIDO PARA PRUEBAS
 
 // Importar las rutas definidas
 import usuariosRoutes from './src/routes/usuarios.route.js';
@@ -71,6 +72,9 @@ app.use(globalErrorHandler);
     process.exit(1);
   }
 };
+
+logger.info("Servidor iniciado correctamente"); //AÑADIR PARA PRUEBAS
+logger.error("Este es un error de prueba");     //AÑADIR PARA PRUEBAS
 
 // Iniciar la aplicación
 startServer();
