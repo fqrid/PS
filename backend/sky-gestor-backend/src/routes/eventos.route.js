@@ -8,22 +8,21 @@ import {
   eliminarEvento, 
   obtenerEventosProximas24h 
 } from '../controllers/eventos.controller.js';
+
 import { authenticateToken } from '../middlewares/authMiddleware.js';
+
 import { 
   validateRequiredFields, 
   validateId, 
-  sanitizeData 
+  sanitizeData,
+  validateNotEmptyStrings
 } from '../middlewares/validationMiddleware.js';
 
 const router = express.Router();
 
-// Middleware global: todas las rutas requieren autenticación
 router.use(authenticateToken);
-
-// Middleware global: sanitizar datos
 router.use(sanitizeData);
 
-// Rutas específicas (se colocan primero por prioridad de coincidencia)
 router.get('/proximas-24h', obtenerEventosProximas24h);
 
 router
@@ -31,6 +30,7 @@ router
   .get(obtenerEventos)
   .post(
     validateRequiredFields(['titulo', 'descripcion', 'fecha', 'ubicacion', 'encargado']),
+    validateNotEmptyStrings,
     crearEvento
   );
 
@@ -40,6 +40,7 @@ router
   .put(
     validateId,
     validateRequiredFields(['titulo', 'descripcion', 'fecha', 'ubicacion', 'encargado']),
+    validateNotEmptyStrings,
     actualizarEvento
   )
   .delete(validateId, eliminarEvento);
