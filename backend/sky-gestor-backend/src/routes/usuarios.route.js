@@ -9,13 +9,16 @@ import {
   actualizarUsuario, 
   eliminarUsuario 
 } from '../controllers/usuarios.controller.js';
+
 import { authenticateToken } from '../middlewares/authMiddleware.js';
+
 import { 
   validateRequiredFields, 
   validateEmail,
   validatePassword,
   validateId, 
-  sanitizeData 
+  sanitizeData,
+  validateNotEmptyStrings       // <-- AÑADIDO
 } from '../middlewares/validationMiddleware.js';
 
 const router = express.Router();
@@ -23,38 +26,50 @@ const router = express.Router();
 // Middleware global: sanitizar datos
 router.use(sanitizeData);
 
+// ------------------------------------------------------------
 // Rutas públicas (no requieren token)
-router.post('/register', 
+// ------------------------------------------------------------
+router.post(
+  '/register', 
   validateRequiredFields(['nombre', 'correo', 'contrasena']),
+  validateNotEmptyStrings,      // <-- AÑADIDO AQUÍ
   validateEmail,
   validatePassword,
   crearUsuario
 );
 
-router.post('/login', 
+router.post(
+  '/login', 
   validateRequiredFields(['correo', 'contrasena']),
+  validateNotEmptyStrings,      // <-- AÑADIDO AQUÍ TAMBIÉN
   validateEmail,
   login
 );
 
+// ------------------------------------------------------------
 // Rutas protegidas (requieren token)
+// ------------------------------------------------------------
 router.get('/', authenticateToken, obtenerUsuarios);
 
-router.get('/:id', 
+router.get(
+  '/:id', 
   authenticateToken,
   validateId,
   obtenerUsuarioPorId
 );
 
-router.put('/:id', 
+router.put(
+  '/:id', 
   authenticateToken,
   validateId,
   validateRequiredFields(['nombre', 'correo']),
+  validateNotEmptyStrings,      // <-- TAMBIÉN APLICADO
   validateEmail,
   actualizarUsuario
 );
 
-router.delete('/:id', 
+router.delete(
+  '/:id', 
   authenticateToken,
   validateId,
   eliminarUsuario
