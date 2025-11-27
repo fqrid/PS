@@ -2,44 +2,58 @@
 import { AppDataSource } from '../config/db.js';
 import { Evento } from '../models/eventos.model.js';
 import { AppError } from '../utils/AppError.js';
-import { Between } from 'typeorm';
-
-const parseFechaInput = (fechaInput) => {
-  if (!fechaInput) {
-    return null;
-  }
-
-  if (fechaInput instanceof Date) {
-    return Number.isNaN(fechaInput.getTime()) ? null : fechaInput;
-  }
-
-  if (typeof fechaInput === 'string') {
-    const dateOnlyRegex = /^\d{4}-\d{2}-\d{2}$/;
-    const trimmed = fechaInput.trim();
-
-    if (dateOnlyRegex.test(trimmed)) {
-      return new Date(`${trimmed}T00:00:00`);
-    }
-
-    const parsed = new Date(trimmed);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-  }
-
-  const parsed = new Date(fechaInput);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-};
+import { Between, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
+import { parseFechaInput, parseFechaOrThrow } from '../utils/dateUtils.js';
 
 class EventosService {
   constructor() {
     this.eventoRepository = AppDataSource.getRepository(Evento);
   }
 
-  async obtenerTodos() {
-    const eventos = await this.eventoRepository.find({
+  async obtenerTodos(filters = {}) {
+    const { fechaInicio, fechaFin, page, limit } = filters;
+
+    // Construir condiciones de filtrado
+    const where = {};
+
+    if (fechaInicio && fechaFin) {
+      const inicio = parseFechaInput(fechaInicio);
+      const fin = parseFechaInput(fechaFin);
+      if (inicio && fin) {
+        where.fecha = Between(inicio, fin);
+      }
+    } else if (fechaInicio) {
+      const inicio = parseFechaInput(fechaInicio);
+      if (inicio) {
+        where.fecha = MoreThanOrEqual(inicio);
+      }
+    } else if (fechaFin) {
+      const fin = parseFechaInput(fechaFin);
+      if (fin) {
+        where.fecha = LessThanOrEqual(fin);
+      }
+    }
+
+    // Paginación
+    const queryOptions = {
+      where: Object.keys(where).length > 0 ? where : undefined,
       order: { fecha: 'DESC' }
-    });
-    
-    return eventos.map(evento => ({
+    };
+
+    if (page && limit) {
+      queryOptions.skip = (page - 1) * limit;
+      queryOptions.take = limit;
+    }
+
+    const eventos = await this.eventoRepository.find(queryOptions);
+
+    // Si hay paginación, también devolver el total
+    let total = null;
+    if (page && limit) {
+      total = await this.eventoRepository.count({ where: queryOptions.where });
+    }
+
+    const result = eventos.map(evento => ({
       id_evento: evento.id_evento,
       titulo: evento.titulo,
       descripcion: evento.descripcion,
@@ -49,6 +63,21 @@ class EventosService {
       creado_en: evento.creado_en,
       actualizado_en: evento.actualizado_en
     }));
+
+    // Retornar con metadata de paginación si aplica
+    if (total !== null) {
+      return {
+        data: result,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit)
+        }
+      };
+    }
+
+    return result;
   }
 
   async obtenerPorId(id_evento) {
@@ -74,17 +103,13 @@ class EventosService {
 
   async crear(data) {
     const { titulo, descripcion, fecha, ubicacion, encargado } = data;
-    
+
     // Validación de campos obligatorios
     if (!titulo || !descripcion || !fecha || !ubicacion || !encargado) {
       throw new AppError('Título, descripción, fecha, ubicación y encargado son campos obligatorios', 400);
     }
 
-    const fechaNormalizada = parseFechaInput(fecha);
-
-    if (!fechaNormalizada) {
-      throw new AppError('Fecha inválida', 400);
-    }
+    const fechaNormalizada = parseFechaOrThrow(fecha, 'fecha');
 
     const evento = this.eventoRepository.create({
       titulo,
@@ -115,16 +140,12 @@ class EventosService {
       throw new AppError('Título, descripción, fecha, ubicación y encargado son campos obligatorios', 400);
     }
 
-    const fechaNormalizada = parseFechaInput(fecha);
+    const fechaNormalizada = parseFechaOrThrow(fecha, 'fecha');
 
-    if (!fechaNormalizada) {
-      throw new AppError('Fecha inválida', 400);
-    }
-
-    const evento = await this.eventoRepository.findOne({ 
-      where: { id_evento } 
+    const evento = await this.eventoRepository.findOne({
+      where: { id_evento }
     });
-    
+
     if (!evento) {
       throw new AppError('Evento no encontrado para actualizar', 404);
     }
@@ -149,20 +170,20 @@ class EventosService {
   }
 
   async eliminar(id_evento) {
-    const evento = await this.eventoRepository.findOne({ 
-      where: { id_evento } 
+    const evento = await this.eventoRepository.findOne({
+      where: { id_evento }
     });
-    
+
     if (!evento) {
       throw new AppError('Evento no encontrado para eliminar', 404);
     }
 
     await this.eventoRepository.remove(evento);
 
-    return { 
-      message: 'Evento eliminado', 
-      deleted: true, 
-      id_evento 
+    return {
+      message: 'Evento eliminado',
+      deleted: true,
+      id_evento
     };
   }
 

@@ -10,7 +10,15 @@ export const crearTarea = catchAsync(async (req, res) => {
 
 // Obtener todas las tareas
 export const obtenerTareas = catchAsync(async (req, res) => {
-  const tareas = await tareasService.obtenerTodas();
+  const { estado, usuarioId, page, limit } = req.query;
+
+  const filters = {};
+  if (estado) filters.estado = estado;
+  if (usuarioId) filters.usuarioId = usuarioId;
+  if (page) filters.page = parseInt(page);
+  if (limit) filters.limit = parseInt(limit);
+
+  const tareas = await tareasService.obtenerTodas(filters);
   res.json(tareas);
 });
 

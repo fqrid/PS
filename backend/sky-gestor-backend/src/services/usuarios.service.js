@@ -89,7 +89,7 @@ class UsuariosService {
 
     // Mostrar token en consola
     console.log('🔑 Token generado:', token);
-    
+
     return {
       message: 'Login exitoso',
       token,
@@ -101,18 +101,49 @@ class UsuariosService {
     };
   }
 
-  async obtenerTodos() {
-    const usuarios = await this.usuarioRepository.find({
-      select: ['id_usuario', 'nombre', 'correo', 'creado_en'],
-      order: { nombre: 'ASC' },
-    });
+  async obtenerTodos(filters = {}) {
+    const { page, limit } = filters;
 
-    return usuarios.map((usuario) => ({
+    // Paginación
+    const queryOptions = {
+      select: ['id_usuario', 'nombre', 'correo', 'creado_en'],
+      order: { nombre: 'ASC' }
+    };
+
+    if (page && limit) {
+      queryOptions.skip = (page - 1) * limit;
+      queryOptions.take = limit;
+    }
+
+    const usuarios = await this.usuarioRepository.find(queryOptions);
+
+    // Si hay paginación, también devolver el total
+    let total = null;
+    if (page && limit) {
+      total = await this.usuarioRepository.count();
+    }
+
+    const result = usuarios.map((usuario) => ({
       id_usuario: usuario.id_usuario,
       nombre: usuario.nombre,
       correo: usuario.correo,
       creado_en: usuario.creado_en,
     }));
+
+    // Retornar con metadata de paginación si aplica
+    if (total !== null) {
+      return {
+        data: result,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit)
+        }
+      };
+    }
+
+    return result;
   }
 
   async obtenerPorId(id_usuario) {

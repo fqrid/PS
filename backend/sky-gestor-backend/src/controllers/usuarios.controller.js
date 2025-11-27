@@ -17,7 +17,13 @@ export const login = catchAsync(async (req, res) => {
 
 // Obtener todos los usuarios (requiere autenticación)
 export const obtenerUsuarios = catchAsync(async (req, res) => {
-  const usuarios = await usuariosService.obtenerTodos();
+  const { page, limit } = req.query;
+
+  const filters = {};
+  if (page) filters.page = parseInt(page);
+  if (limit) filters.limit = parseInt(limit);
+
+  const usuarios = await usuariosService.obtenerTodos(filters);
   res.json(usuarios);
 });
 

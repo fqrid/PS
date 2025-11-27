@@ -10,7 +10,15 @@ export const crearEvento = catchAsync(async (req, res) => {
 
 // Obtener todos los eventos
 export const obtenerEventos = catchAsync(async (req, res) => {
-  const eventos = await eventosService.obtenerTodos();
+  const { fechaInicio, fechaFin, page, limit } = req.query;
+
+  const filters = {};
+  if (fechaInicio) filters.fechaInicio = fechaInicio;
+  if (fechaFin) filters.fechaFin = fechaFin;
+  if (page) filters.page = parseInt(page);
+  if (limit) filters.limit = parseInt(limit);
+
+  const eventos = await eventosService.obtenerTodos(filters);
   res.json(eventos);
 });
 
