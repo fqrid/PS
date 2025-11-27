@@ -100,6 +100,104 @@ const validateNotEmptyStrings = (req, res, next) => {
   next();
 };
 
+// Middleware para validar el estado de una tarea
+const validateEstadoTarea = (req, res, next) => {
+  const estadosValidos = ['pendiente', 'en_progreso', 'completada'];
+
+  if (req.body.estado && !estadosValidos.includes(req.body.estado)) {
+    return next(new AppError(
+      `Estado inválido. Debe ser uno de: ${estadosValidos.join(', ')}`,
+      400
+    ));
+  }
+
+  next();
+};
+
+// Middleware para validar formato de fecha
+const validateDate = (fieldName = 'fecha') => {
+  return (req, res, next) => {
+    const dateValue = req.body[fieldName];
+
+    if (!dateValue) {
+      return next();
+    }
+
+    const parsed = new Date(dateValue);
+    if (Number.isNaN(parsed.getTime())) {
+      return next(new AppError(`${fieldName} tiene un formato inválido`, 400));
+    }
+
+    next();
+  };
+};
+
+// Middleware para validar parámetros de paginación
+const validatePagination = (req, res, next) => {
+  const { page, limit } = req.query;
+
+  if (page !== undefined) {
+    const pageNum = Number(page);
+    if (!Number.isInteger(pageNum) || pageNum < 1) {
+      return next(new AppError('El parámetro page debe ser un entero positivo', 400));
+    }
+  }
+
+  if (limit !== undefined) {
+    const limitNum = Number(limit);
+    if (!Number.isInteger(limitNum) || limitNum < 1 || limitNum > 100) {
+      return next(new AppError('El parámetro limit debe ser un entero entre 1 y 100', 400));
+    }
+  }
+
+  next();
+};
+
+// Middleware para validar query params opcionales
+const validateQueryParams = (allowedParams) => {
+  return (req, res, next) => {
+    const queryKeys = Object.keys(req.query);
+    const invalidParams = queryKeys.filter(key => !allowedParams.includes(key));
+
+    if (invalidParams.length > 0) {
+      return next(new AppError(
+        `Parámetros no permitidos: ${invalidParams.join(', ')}. Parámetros válidos: ${allowedParams.join(', ')}`,
+        400
+      ));
+    }
+
+    next();
+  };
+};
+
+// Función helper para escapar HTML (prevención XSS básica)
+const escapeHtml = (text) => {
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#x27;',
+    '/': '&#x2F;',
+  };
+  return text.replace(/[&<>"'/]/g, (char) => map[char]);
+};
+
+// Middleware mejorado para sanitizar datos con protección XSS
+const sanitizeDataEnhanced = (req, res, next) => {
+  for (const key of Object.keys(req.body)) {
+    if (typeof req.body[key] === 'string') {
+      // Trim whitespace
+      req.body[key] = req.body[key].trim();
+
+      // Opcional: escapar HTML para prevenir XSS (comentado por defecto)
+      // Descomenta si necesitas protección XSS estricta
+      // req.body[key] = escapeHtml(req.body[key]);
+    }
+  }
+  next();
+};
+
 // Exportar todos los middlewares
 export {
   validateRequiredFields,
@@ -108,5 +206,11 @@ export {
   validateId,
   validateNumericParam,
   sanitizeData,
-  validateNotEmptyStrings
+  validateNotEmptyStrings,
+  validateEstadoTarea,
+  validateDate,
+  validatePagination,
+  validateQueryParams,
+  sanitizeDataEnhanced,
+  escapeHtml
 };

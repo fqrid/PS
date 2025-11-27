@@ -1,24 +1,26 @@
 // Mejoras para routes + mejores Validaciones 
 // src/routes/usuariosRoutes.js
 import express from 'express';
-import { 
-  crearUsuario, 
-  login, 
-  obtenerUsuarios, 
-  obtenerUsuarioPorId, 
-  actualizarUsuario, 
-  eliminarUsuario 
+import {
+  crearUsuario,
+  login,
+  obtenerUsuarios,
+  obtenerUsuarioPorId,
+  actualizarUsuario,
+  eliminarUsuario
 } from '../controllers/usuarios.controller.js';
 
 import { authenticateToken } from '../middlewares/authMiddleware.js';
 
-import { 
-  validateRequiredFields, 
+import {
+  validateRequiredFields,
   validateEmail,
   validatePassword,
-  validateId, 
+  validateId,
   sanitizeData,
-  validateNotEmptyStrings       // <-- AÑADIDO
+  validateNotEmptyStrings,
+  validatePagination,
+  validateQueryParams
 } from '../middlewares/validationMiddleware.js';
 
 const router = express.Router();
@@ -30,7 +32,7 @@ router.use(sanitizeData);
 // Rutas públicas (no requieren token)
 // ------------------------------------------------------------
 router.post(
-  '/register', 
+  '/register',
   validateRequiredFields(['nombre', 'correo', 'contrasena']),
   validateNotEmptyStrings,      // <-- AÑADIDO AQUÍ
   validateEmail,
@@ -39,7 +41,7 @@ router.post(
 );
 
 router.post(
-  '/login', 
+  '/login',
   validateRequiredFields(['correo', 'contrasena']),
   validateNotEmptyStrings,      // <-- AÑADIDO AQUÍ TAMBIÉN
   validateEmail,
@@ -49,17 +51,23 @@ router.post(
 // ------------------------------------------------------------
 // Rutas protegidas (requieren token)
 // ------------------------------------------------------------
-router.get('/', authenticateToken, obtenerUsuarios);
+router.get(
+  '/',
+  authenticateToken,
+  validatePagination,
+  validateQueryParams(['page', 'limit']),
+  obtenerUsuarios
+);
 
 router.get(
-  '/:id', 
+  '/:id',
   authenticateToken,
   validateId,
   obtenerUsuarioPorId
 );
 
 router.put(
-  '/:id', 
+  '/:id',
   authenticateToken,
   validateId,
   validateRequiredFields(['nombre', 'correo']),
@@ -69,7 +77,7 @@ router.put(
 );
 
 router.delete(
-  '/:id', 
+  '/:id',
   authenticateToken,
   validateId,
   eliminarUsuario

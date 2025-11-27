@@ -1,21 +1,24 @@
 // src/routes/eventosRoutes.js
 import express from 'express';
-import { 
-  crearEvento, 
-  obtenerEventos, 
-  obtenerEventoPorId, 
-  actualizarEvento, 
-  eliminarEvento, 
-  obtenerEventosProximas24h 
+import {
+  crearEvento,
+  obtenerEventos,
+  obtenerEventoPorId,
+  actualizarEvento,
+  eliminarEvento,
+  obtenerEventosProximas24h
 } from '../controllers/eventos.controller.js';
 
 import { authenticateToken } from '../middlewares/authMiddleware.js';
 
-import { 
-  validateRequiredFields, 
-  validateId, 
+import {
+  validateRequiredFields,
+  validateId,
   sanitizeData,
-  validateNotEmptyStrings
+  validateNotEmptyStrings,
+  validateDate,
+  validatePagination,
+  validateQueryParams
 } from '../middlewares/validationMiddleware.js';
 
 const router = express.Router();
@@ -27,10 +30,15 @@ router.get('/proximas-24h', obtenerEventosProximas24h);
 
 router
   .route('/')
-  .get(obtenerEventos)
+  .get(
+    validatePagination,
+    validateQueryParams(['fechaInicio', 'fechaFin', 'page', 'limit']),
+    obtenerEventos
+  )
   .post(
     validateRequiredFields(['titulo', 'descripcion', 'fecha', 'ubicacion', 'encargado']),
     validateNotEmptyStrings,
+    validateDate('fecha'),
     crearEvento
   );
 
@@ -41,6 +49,7 @@ router
     validateId,
     validateRequiredFields(['titulo', 'descripcion', 'fecha', 'ubicacion', 'encargado']),
     validateNotEmptyStrings,
+    validateDate('fecha'),
     actualizarEvento
   )
   .delete(validateId, eliminarEvento);
