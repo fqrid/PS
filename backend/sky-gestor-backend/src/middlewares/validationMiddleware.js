@@ -90,6 +90,16 @@ const sanitizeData = (req, res, next) => {
   next();
 };
 
+// Middleware para validar que ningún campo venga vacío
+const validateNotEmptyStrings = (req, res, next) => {
+  for (const key in req.body) {
+    if (req.body[key] === "") {
+      return next(new AppError(`El campo ${key} está vacío`, 400));
+    }
+  }
+  next();
+};
+
 // Exportar todos los middlewares
 export {
   validateRequiredFields,
@@ -97,5 +107,6 @@ export {
   validatePassword,
   validateId,
   validateNumericParam,
-  sanitizeData
+  sanitizeData,
+  validateNotEmptyStrings
 };
